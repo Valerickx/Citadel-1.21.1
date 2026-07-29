@@ -137,7 +137,7 @@ public class ClientProxy extends ServerProxy {
     }
 
     @SubscribeEvent
-    public void renderWorldLastEvent(RenderLevelStageEvent event) {
+    public void renderWorldLastEvent(RenderLevelStageEvent.AfterLevel event) {
         if (Pathfinding.isDebug()) {
             WorldEventContext.INSTANCE.renderWorldLastEvent(event);
         }
@@ -322,6 +322,6 @@ public class ClientProxy extends ServerProxy {
     }
 
     @SubscribeEvent
-    public void postRenderStage(RenderLevelStageEvent event) {
+    public void postRenderStage(RenderLevelStageEvent.AfterLevel event) {
     }
 }

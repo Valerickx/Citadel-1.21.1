@@ -10,6 +10,8 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -30,18 +32,16 @@ public abstract class LivingEntityMixin extends Entity implements ICitadelDataEn
     }
 
     @Inject(at = @At("TAIL"), remap = CitadelConstants.REMAPREFS, method = "addAdditionalSaveData")
-    private void citadel_writeAdditional(CompoundTag compoundNBT, CallbackInfo ci) {
+    private void citadel_writeAdditional(ValueOutput output, CallbackInfo ci) {
         CompoundTag citadelDat = getCitadelEntityData();
         if (citadelDat != null) {
-            compoundNBT.put("CitadelData", citadelDat);
+            output.store("CitadelData", CompoundTag.CODEC, citadelDat);
         }
     }
 
     @Inject(at = @At("TAIL"), remap = CitadelConstants.REMAPREFS, method = "readAdditionalSaveData")
-    private void citadel_readAdditional(CompoundTag compoundNBT, CallbackInfo ci) {
-        if (compoundNBT.contains("CitadelData")) {
-            setCitadelEntityData(compoundNBT.getCompound("CitadelData").orElse(new CompoundTag()));
-        }
+    private void citadel_readAdditional(ValueInput input, CallbackInfo ci) {
+        input.read("CitadelData", CompoundTag.CODEC).ifPresent(this::setCitadelEntityData);
     }
 
     public CompoundTag getCitadelEntityData() {

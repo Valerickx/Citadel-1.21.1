@@ -3,6 +3,7 @@ package com.github.alexthe666.citadel.client.model.basic;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.model.Model;
+import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
@@ -18,7 +19,9 @@ public abstract class BasicEntityModel<T extends Entity> extends Model<T> {
     }
 
     protected BasicEntityModel(Function<Identifier, RenderType> renderType) {
-        super(null, renderType);
+        // Legacy Citadel models maintain their own AdvancedModelBox hierarchy,
+        // but 26.2 requires every Model to have a non-null root ModelPart.
+        super(new ModelPart(java.util.List.of(), java.util.Map.of()), renderType);
     }
 
     public abstract Iterable<BasicModelPart> parts();

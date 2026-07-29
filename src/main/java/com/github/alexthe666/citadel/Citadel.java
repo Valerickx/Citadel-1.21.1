@@ -18,6 +18,9 @@ import com.github.alexthe666.citadel.web.WebHelper;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -63,13 +66,13 @@ public class Citadel {
     public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(BuiltInRegistries.BLOCK, "citadel");
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(BuiltInRegistries.BLOCK_ENTITY_TYPE, "citadel");
 
-    public static final DeferredHolder<Item, ItemCitadelDebug> DEBUG_ITEM = ITEMS.register("debug", () -> new ItemCitadelDebug(new Item.Properties()));
-    public static final DeferredHolder<Item, ItemCitadelBook> CITADEL_BOOK = ITEMS.register("citadel_book", () -> new ItemCitadelBook(new Item.Properties().stacksTo(1)));
-    public static final DeferredHolder<Item, ItemCustomRender> EFFECT_ITEM = ITEMS.register("effect_item", () -> new ItemCustomRender(new Item.Properties().stacksTo(1)));
-    public static final DeferredHolder<Item, ItemCustomRender> FANCY_ITEM = ITEMS.register("fancy_item", () -> new ItemCustomRender(new Item.Properties().stacksTo(1)));
-    public static final DeferredHolder<Item, ItemCustomRender> ICON_ITEM = ITEMS.register("icon_item", () -> new ItemCustomRender(new Item.Properties().stacksTo(1)));
+    public static final DeferredHolder<Item, ItemCitadelDebug> DEBUG_ITEM = ITEMS.register("debug", () -> new ItemCitadelDebug(itemProperties("debug")));
+    public static final DeferredHolder<Item, ItemCitadelBook> CITADEL_BOOK = ITEMS.register("citadel_book", () -> new ItemCitadelBook(itemProperties("citadel_book").stacksTo(1)));
+    public static final DeferredHolder<Item, ItemCustomRender> EFFECT_ITEM = ITEMS.register("effect_item", () -> new ItemCustomRender(itemProperties("effect_item").stacksTo(1)));
+    public static final DeferredHolder<Item, ItemCustomRender> FANCY_ITEM = ITEMS.register("fancy_item", () -> new ItemCustomRender(itemProperties("fancy_item").stacksTo(1)));
+    public static final DeferredHolder<Item, ItemCustomRender> ICON_ITEM = ITEMS.register("icon_item", () -> new ItemCustomRender(itemProperties("icon_item").stacksTo(1)));
 
-    public static final Supplier<Block> LECTERN = BLOCKS.register("lectern", () -> new CitadelLecternBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.LECTERN)));
+    public static final Supplier<Block> LECTERN = BLOCKS.register("lectern", () -> new CitadelLecternBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.LECTERN).setId(ResourceKey.create(Registries.BLOCK, Identifier.parse("citadel:lectern")))));
 
     public static final Supplier<BlockEntityType<CitadelLecternBlockEntity>> LECTERN_BE = BLOCK_ENTITIES.register("lectern", () -> new BlockEntityType<>(CitadelLecternBlockEntity::new, java.util.Set.of(LECTERN.get())));
 
@@ -87,6 +90,10 @@ public class Citadel {
         }
         modContainer.registerConfig(ModConfig.Type.COMMON, ConfigHolder.SERVER_SPEC);
         NeoForge.EVENT_BUS.register(new CitadelEvents());
+    }
+
+    private static Item.Properties itemProperties(String name) {
+        return new Item.Properties().setId(ResourceKey.create(Registries.ITEM, Identifier.parse("citadel:" + name)));
     }
 
     @SubscribeEvent
@@ -131,7 +138,7 @@ public class Citadel {
         final PayloadRegistrar registrar = event.registrar("citadel").versioned("2.7.0").optional();
         registrar.playToServer(PropertiesMessage.TYPE, PropertiesMessage.CODEC, PropertiesMessage::handle);
         registrar.playToClient(AnimationMessage.TYPE, AnimationMessage.CODEC, AnimationMessage::handle);
-        registrar.playBidirectional(DanceJukeboxMessage.TYPE, DanceJukeboxMessage.CODEC, DanceJukeboxMessage::handle);
+        registrar.playBidirectional(DanceJukeboxMessage.TYPE, DanceJukeboxMessage.CODEC, DanceJukeboxMessage::handle, DanceJukeboxMessage::handle);
         registrar.playToClient(SyncePathMessage.TYPE, SyncePathMessage.CODEC, SyncePathMessage::handle);
         registrar.playToClient(SyncPathReachedMessage.TYPE, SyncPathReachedMessage.CODEC, SyncPathReachedMessage::handle);
         registrar.playToClient(SyncClientTickRateMessage.TYPE, SyncClientTickRateMessage.CODEC, SyncClientTickRateMessage::handle);
