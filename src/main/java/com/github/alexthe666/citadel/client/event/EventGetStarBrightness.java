@@ -2,7 +2,7 @@ package com.github.alexthe666.citadel.client.event;
 
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.neoforged.bus.api.Event;
-import net.neoforged.neoforge.common.util.TriState;
+import net.minecraft.util.TriState;
 
 public class EventGetStarBrightness extends Event {
     private ClientLevel clientLevel;

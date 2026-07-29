@@ -2,7 +2,7 @@ package com.github.alexthe666.citadel.client.event;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.neoforged.bus.api.Event;
-import net.neoforged.neoforge.common.util.TriState;
+import net.minecraft.util.TriState;
 
 public class EventRenderSplashText extends Event {
     private String splashText;
