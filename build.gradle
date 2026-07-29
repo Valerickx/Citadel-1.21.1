@@ -11,7 +11,7 @@ if (System.getenv('BUILD_NUMBER') != null) {
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(21))
+        languageVersion.set(JavaLanguageVersion.of(25))
     }
 }
 
@@ -244,7 +244,7 @@ idea {
 }
 
 jar {
-    //classifier 'slim'
+    archiveFileName = "${mod_id}-${minecraft_version}.jar"
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     afterEvaluate {
         configurations.shade.each { dep ->
