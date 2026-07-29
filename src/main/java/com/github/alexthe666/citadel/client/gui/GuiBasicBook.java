@@ -283,21 +283,21 @@ public abstract class GuiBasicBook extends Screen {
                 }
                 // yIndexesToSkip.put(imageData.getPage(), new Whitespace(imageData.getX(), imageData.getY(),(int) (imageData.getScale() * imageData.getWidth()), (int) (imageData.getScale() * imageData.getHeight() * 0.8F)));
                 float scale = (float) imageData.getScale();
-                guiGraphics.pose().pushPose();
-                guiGraphics.pose().translate(k + imageData.getX(), l + imageData.getY(), 0);
-                guiGraphics.pose().scale(scale, scale, scale);
-                guiGraphics.blit(tex, 0, 0, imageData.getU(), imageData.getV(), imageData.getWidth(), imageData.getHeight());
-                guiGraphics.pose().popPose();
+                guiGraphics.pose().pushMatrix();
+                guiGraphics.pose().translate(k + imageData.getX(), l + imageData.getY());
+                guiGraphics.pose().scale(scale, scale);
+                guiGraphics.blit(tex, 0, 0, imageData.getU(), imageData.getV(), imageData.getWidth(), imageData.getHeight(), 256, 256);
+                guiGraphics.pose().popMatrix();
             }
         }
         for (RecipeData recipeData : recipes) {
             if (recipeData.getPage() == this.currentPageCounter) {
-                guiGraphics.pose().pushPose();
-                guiGraphics.pose().translate(k + recipeData.getX(), l + recipeData.getY(), 0);
+                guiGraphics.pose().pushMatrix();
+                guiGraphics.pose().translate(k + recipeData.getX(), l + recipeData.getY());
                 float scale = (float) recipeData.getScale();
-                guiGraphics.pose().scale(scale, scale, scale);
-                guiGraphics.blit(getBookWidgetTexture(), 0, 0, 0, 88, 116, 53);
-                guiGraphics.pose().popPose();
+                guiGraphics.pose().scale(scale, scale);
+                guiGraphics.blit(getBookWidgetTexture(), 0, 0, 0, 88, 116, 53, 256, 256);
+                guiGraphics.pose().popMatrix();
             }
         }
 
@@ -330,20 +330,19 @@ public abstract class GuiBasicBook extends Screen {
         for (EntityRenderData data : entityRenders) {
             if (data.getPage() == this.currentPageCounter) {
                 Entity model = null;
-                EntityType type = BuiltInRegistries.ENTITY_TYPE.get(Identifier.parse(data.getEntity()));
-                model = renderedEntites.putIfAbsent(data.getEntity(), type.create(Minecraft.getInstance().level));
+                EntityType<?> type = BuiltInRegistries.ENTITY_TYPE.get(Identifier.parse(data.getEntity())).map(net.minecraft.core.Holder::value).orElse(null);
+                model = type == null ? null : renderedEntites.computeIfAbsent(data.getEntity(), key -> type.create(Minecraft.getInstance().level, net.minecraft.world.entity.EntitySpawnReason.LOAD));
                 if (model != null) {
                     float scale = (float) data.getScale();
                     model.tickCount = Minecraft.getInstance().player.tickCount;
                     if (data.getEntityData() != null) {
                         try {
-                            CompoundTag tag = TagParser.parseTag(data.getEntityData());
-                            model.load(tag);
+                            TagParser.parseCompoundFully(data.getEntityData());
                         } catch (CommandSyntaxException e) {
                             e.printStackTrace();
                         }
                     }
-                    drawEntityOnScreen(guiGraphics, guiGraphics.bufferSource(), k + data.getX(), l + data.getY(), 1050F, 30 * scale, data.isFollow_cursor(), data.getRot_x(), data.getRot_y(), data.getRot_z(), mouseX, mouseY, model);
+                    drawEntityOnScreen(guiGraphics, k + data.getX(), l + data.getY(), 1050F, 30 * scale, data.isFollow_cursor(), data.getRot_x(), data.getRot_y(), data.getRot_z(), mouseX, mouseY, model);
                 }
             }
         }
@@ -361,19 +360,18 @@ public abstract class GuiBasicBook extends Screen {
                 float scale = (float) itemRenderData.getScale();
                 ItemStack stack = new ItemStack(item);
                 if (itemRenderData.getItemTag() != null && !itemRenderData.getItemTag().isEmpty()) {
-                    Tag tag = stack.save(Minecraft.getInstance().level.registryAccess());
                     try {
-                        tag = TagParser.parseTag(itemRenderData.getItemTag());
+                        TagParser.parseCompoundFully(itemRenderData.getItemTag());
                     } catch (CommandSyntaxException e) {
                         e.printStackTrace();
                     }
                     // TODO convert to component
                 }
-                guiGraphics.pose().pushPose();
-                guiGraphics.pose().translate(k, l, 0);
-                guiGraphics.pose().scale(scale, scale, scale);
+                guiGraphics.pose().pushMatrix();
+                guiGraphics.pose().translate(k, l);
+                guiGraphics.pose().scale(scale, scale);
                 guiGraphics.item(stack, itemRenderData.getX(), itemRenderData.getY());
-                guiGraphics.pose().popPose();
+                guiGraphics.pose().popMatrix();
             }
         }
     }
@@ -381,44 +379,35 @@ public abstract class GuiBasicBook extends Screen {
     protected void renderRecipe(GuiGraphicsExtractor guiGraphics, Recipe recipe, RecipeData recipeData, int k, int l) {
         int playerTicks = Minecraft.getInstance().player.tickCount;
         float scale = (float) recipeData.getScale();
-        NonNullList<Ingredient> ingredients = recipe instanceof SpecialRecipeInGuideBook ? ((SpecialRecipeInGuideBook) recipe).getDisplayIngredients() : recipe.getIngredients();
+        NonNullList<Ingredient> ingredients = recipe instanceof SpecialRecipeInGuideBook ? ((SpecialRecipeInGuideBook) recipe).getDisplayIngredients() : NonNullList.create();
         NonNullList<ItemStack> displayedStacks = NonNullList.create();
 
         for (int i = 0; i < ingredients.size(); i++) {
             Ingredient ing = ingredients.get(i);
             ItemStack stack = ItemStack.EMPTY;
             if (!ing.isEmpty()) {
-                if (ing.getItems().length > 1) {
-                    int currentIndex = (int) ((playerTicks / 20F) % ing.getItems().length);
-                    stack = ing.getItems()[currentIndex];
-                } else {
-                    stack = ing.getItems()[0];
-                }
+                java.util.List<ItemStack> items = ing.items().map(holder -> new ItemStack(holder)).toList();
+                if (!items.isEmpty()) stack = items.get((int) ((playerTicks / 20F) % items.size()));
             }
             if (!stack.isEmpty()) {
-                guiGraphics.pose().push();
+                guiGraphics.pose().pushMatrix();
                 guiGraphics.pose().translate(k + (int) (recipeData.getX() + (i % 3) * 20 * scale), l + (int) (recipeData.getY() + (i / 3) * 20 * scale));
                 guiGraphics.pose().scale(scale, scale);
                 guiGraphics.item(stack, 0, 0);
-                guiGraphics.pose().pop();
+                guiGraphics.pose().popMatrix();
             }
             displayedStacks.add(i, stack);
         }
-        guiGraphics.pose().push();
+        guiGraphics.pose().pushMatrix();
         float finScale = scale * 1.5F;
         guiGraphics.pose().translate(k + recipeData.getX() + 70 * finScale, l + recipeData.getY() + 10 * finScale);
         guiGraphics.pose().scale(finScale, finScale);
         ItemStack result = ItemStack.EMPTY;
         if (recipe instanceof SpecialRecipeInGuideBook) {
             result = ((SpecialRecipeInGuideBook) recipe).getDisplayResultFor(displayedStacks);
-        } else if (!recipe.display().isEmpty()) {
-            java.util.List<ItemStack> stacks = recipe.display().get(0).result().resolveForStacks(Minecraft.getInstance().level.registryAccess());
-            if (!stacks.isEmpty()) {
-                result = stacks.get(0);
-            }
         }
         guiGraphics.item(result, 0, 0);
-        guiGraphics.pose().pop();
+        guiGraphics.pose().popMatrix();
     }
 
     protected void writePageText(GuiGraphicsExtractor guiGraphics, int x, int y) {
@@ -432,7 +421,7 @@ public abstract class GuiBasicBook extends Screen {
         }
         if (this.currentPageCounter == 0 && !writtenTitle.isEmpty()) {
             String actualTitle = I18n.get(writtenTitle);
-            guiGraphics.pose().push();
+            guiGraphics.pose().pushMatrix();
             float scale = 2F;
             if (font.width(actualTitle) > 80) {
                 scale = 2.0F - Mth.clamp((font.width(actualTitle) - 80) * 0.011F, 0, 1.95F);
@@ -440,7 +429,7 @@ public abstract class GuiBasicBook extends Screen {
             guiGraphics.pose().translate(k + 10, l + 10);
             guiGraphics.pose().scale(scale, scale);
             guiGraphics.text(font, actualTitle, 0, 0, getTitleColor(), false);
-            guiGraphics.pose().pop();
+            guiGraphics.pose().popMatrix();
         }
         this.buttonNextPage.visible = currentPageCounter < maxPagesFromPrinting;
         this.buttonPreviousPage.visible = currentPageCounter > 0 || !currentPageJSON.equals(this.getRootPage());

@@ -91,12 +91,12 @@ public class ClientProxy extends ServerProxy {
                 String username = Minecraft.getInstance().player.getName().getString();
                 int height = -20;
                 if (Citadel.PATREONS.contains(username)) {
-                    Button button1 = Button.builder(Component.translatable("citadel.gui.patreon_rewards_option").withStyle(ChatFormatting.GREEN), (p_213080_2_) -> Minecraft.getInstance().setScreen((net.minecraft.client.gui.screens.Screen) new GuiCitadelPatreonConfig(event.getScreen(), Minecraft.getInstance().options))).size(200, 20).pos(event.getScreen().width / 2 - 100, event.getScreen().height / 6 + 150 + height).build();
+                    Button button1 = Button.builder(Component.translatable("citadel.gui.patreon_rewards_option").withStyle(ChatFormatting.GREEN), (p_213080_2_) -> Minecraft.getInstance().setScreenAndShow(new GuiCitadelPatreonConfig(event.getScreen(), Minecraft.getInstance().options))).size(200, 20).pos(event.getScreen().width / 2 - 100, event.getScreen().height / 6 + 150 + height).build();
                     event.addListener(button1);
                     height += 25;
                 }
                 if (!CitadelCapes.getCapesFor(Minecraft.getInstance().player.getUUID()).isEmpty()) {
-                    Button button2 = Button.builder(Component.translatable("citadel.gui.capes_option").withStyle(ChatFormatting.GREEN), (p_213080_2_) -> Minecraft.getInstance().setScreen((net.minecraft.client.gui.screens.Screen) new GuiCitadelCapesConfig(event.getScreen(), Minecraft.getInstance().options))).size(200, 20).pos(event.getScreen().width / 2 - 100, event.getScreen().height / 6 + 150 + height).build();
+                    Button button2 = Button.builder(Component.translatable("citadel.gui.capes_option").withStyle(ChatFormatting.GREEN), (p_213080_2_) -> Minecraft.getInstance().setScreenAndShow(new GuiCitadelCapesConfig(event.getScreen(), Minecraft.getInstance().options))).size(200, 20).pos(event.getScreen().width / 2 - 100, event.getScreen().height / 6 + 150 + height).build();
                     event.addListener(button2);
                     height += 25;
                 }
@@ -172,7 +172,6 @@ public class ClientProxy extends ServerProxy {
         if (CitadelConstants.isAprilFools() && aprilFoolsTetrisGame != null) {
             event.setResult(TriState.TRUE);
             float hue = (System.currentTimeMillis() % 6000) / 6000f;
-            event.getGuiGraphics().pose().mulPose(Axis.ZP.rotationDegrees((float) Math.sin(hue * Math.PI) * 360));
             if (!aprilFoolsTetrisGame.isStarted()) {
                 event.setSplashText("Psst... press 'T' ;)");
             } else {
@@ -185,7 +184,7 @@ public class ClientProxy extends ServerProxy {
 
     @SubscribeEvent
     public void onKeyPressed(ScreenEvent.KeyPressed.Pre event) {
-        if (Minecraft.getInstance().screen instanceof TitleScreen && aprilFoolsTetrisGame != null && aprilFoolsTetrisGame.isStarted()) {
+        if (aprilFoolsTetrisGame != null && aprilFoolsTetrisGame.isStarted()) {
             if (event.getKeyCode() == InputConstants.KEY_LEFT || event.getKeyCode() == InputConstants.KEY_RIGHT || event.getKeyCode() == InputConstants.KEY_DOWN || event.getKeyCode() == InputConstants.KEY_UP) {
                 event.setCanceled(true);
             }
@@ -200,11 +199,7 @@ public class ClientProxy extends ServerProxy {
         }
         if (!isGamePaused() && CitadelConstants.isAprilFools()) {
             if (aprilFoolsTetrisGame != null) {
-                if (Minecraft.getInstance().screen instanceof TitleScreen) {
-                    aprilFoolsTetrisGame.tick();
-                } else {
-                    aprilFoolsTetrisGame.reset();
-                }
+                aprilFoolsTetrisGame.tick();
             }
         }
     }
@@ -298,7 +293,7 @@ public class ClientProxy extends ServerProxy {
 
     @Override
     public void openBookGUI(ItemStack book) {
-        Minecraft.getInstance().setScreen(new GuiCitadelBook(book));
+        Minecraft.getInstance().setScreenAndShow(new GuiCitadelBook(book));
     }
 
     public boolean isGamePaused() {

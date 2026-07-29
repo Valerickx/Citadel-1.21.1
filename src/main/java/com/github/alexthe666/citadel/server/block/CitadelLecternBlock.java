@@ -29,18 +29,17 @@ public class CitadelLecternBlock extends LecternBlock {
 
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         BlockEntity blockEntity = level.getBlockEntity(pos);
-        if (level.isClientSide && blockEntity instanceof CitadelLecternBlockEntity lecternBlockEntity && lecternBlockEntity.hasBook()) {
+        if (level.isClientSide() && blockEntity instanceof CitadelLecternBlockEntity lecternBlockEntity && lecternBlockEntity.hasBook()) {
             ItemStack book = lecternBlockEntity.getBook();
-            if (!book.isEmpty() && !player.getCooldowns().isOnCooldown(book.getItem())) {
+            if (!book.isEmpty() && !player.getCooldowns().isOnCooldown(book)) {
                 book.use(level, player, hand);
             }
         }
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        return InteractionResult.SUCCESS;
 
     }
 
 
-    @Override
     public int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos) {
         if (state.getValue(HAS_BOOK)) {
             BlockEntity blockentity = level.getBlockEntity(pos);
@@ -52,7 +51,6 @@ public class CitadelLecternBlock extends LecternBlock {
         return 0;
     }
 
-    @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState replaceState, boolean b) {
         if (!state.is(replaceState.getBlock())) {
             if (state.getValue(HAS_BOOK)) {
@@ -63,7 +61,6 @@ public class CitadelLecternBlock extends LecternBlock {
                 level.updateNeighborsAt(pos.below(), this);
             }
 
-            super.onRemove(state, level, pos, replaceState, b);
         }
     }
 

@@ -43,10 +43,6 @@ public class ClientTickRateTracker extends TickRateTracker {
 
     public void masterTick(){
         super.masterTick();
-        if(client.getTimer() instanceof DeltaTracker.Timer timer){
-            timer.msPerTick = getClientTickRate();
-
-        }
     }
 
     public float getClientTickRate(){

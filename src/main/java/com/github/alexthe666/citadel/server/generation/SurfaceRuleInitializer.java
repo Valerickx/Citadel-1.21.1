@@ -30,11 +30,11 @@ public class SurfaceRuleInitializer {
         Citadel.LOGGER.info("[Citadel] OVERWORLD rules registered: {}", SurfaceRulesManager.hasRulesForCategory(SurfaceRulesManager.RuleCategory.OVERWORLD));
         
         RegistryAccess registryAccess = server.registryAccess();
-        Registry<LevelStem> levelStemRegistry = registryAccess.registryOrThrow(Registries.LEVEL_STEM);
+        Registry<LevelStem> levelStemRegistry = registryAccess.lookupOrThrow(Registries.LEVEL_STEM);
 
         for (Map.Entry<ResourceKey<LevelStem>, LevelStem> entry : levelStemRegistry.entrySet()) {
             LevelStem stem = entry.getValue();
-            Citadel.LOGGER.info("[Citadel] Processing dimension: {}", entry.getKey().location());
+            Citadel.LOGGER.info("[Citadel] Processing dimension: {}", entry.getKey().identifier());
             initializeSurfaceRules(stem.type(), entry.getKey(), stem.generator());
         }
         Citadel.LOGGER.info("[Citadel] SurfaceRuleInitializer: Initialization complete.");
@@ -64,7 +64,7 @@ public class SurfaceRuleInitializer {
         // Check if the mixin is applied before casting (cast through Object since compiler doesn't know about mixin)
         if (!((Object) generatorSettings instanceof IExtendedNoiseGeneratorSettings)) {
             Citadel.LOGGER.warn("NoiseGeneratorSettings mixin not applied, surface rules will not be injected for: {}", 
-                levelResourceKey.location());
+                levelResourceKey.identifier());
             return;
         }
 
@@ -73,7 +73,7 @@ public class SurfaceRuleInitializer {
         ((IExtendedNoiseGeneratorSettings) (Object) generatorSettings).citadel$setRuleCategory(ruleCategory);
         
         Citadel.LOGGER.info("Initialized Citadel surface rules for dimension: {} (category: {})", 
-            levelResourceKey.location(), ruleCategory);
+            levelResourceKey.identifier(), ruleCategory);
     }
 
     /**
@@ -84,28 +84,18 @@ public class SurfaceRuleInitializer {
         
         // Check dimension characteristics to determine category
         // The Nether has ultraWarm=true, the End has no ceiling and different height
-        if (type.ultraWarm()) {
+        if (type.hasCeiling()) {
             return SurfaceRulesManager.RuleCategory.NETHER;
         }
         
         // Check for End-like dimensions (no ceiling, specific height range)
         // End has minY=0, height=256, no ceiling
-        if (!type.hasCeiling() && type.minY() == 0 && type.height() == 256 && !type.natural()) {
+        if (!type.hasCeiling() && type.minY() == 0 && type.height() == 256) {
             return SurfaceRulesManager.RuleCategory.END;
         }
         
         // Default to overworld for natural dimensions
-        if (type.natural()) {
-            return SurfaceRulesManager.RuleCategory.OVERWORLD;
-        }
-        
-        // For custom dimensions, try to make a reasonable guess
-        // If it has a ceiling, it's probably nether-like
-        if (type.hasCeiling()) {
-            return SurfaceRulesManager.RuleCategory.NETHER;
-        }
-        
-        // Default to overworld
         return SurfaceRulesManager.RuleCategory.OVERWORLD;
+        
     }
 }

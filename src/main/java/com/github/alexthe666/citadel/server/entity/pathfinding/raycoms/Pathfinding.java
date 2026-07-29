@@ -50,17 +50,7 @@ public final class Pathfinding {
 
         @Override
         public Thread newThread(final @NotNull Runnable runnable) throws RuntimeException {
-            BlockableEventLoop<?> workqueue = LogicalSidedProvider.WORKQUEUE.get(LogicalSide.SERVER);
-            ClassLoader classLoader;
-            if (workqueue.isSameThread()) {
-                classLoader = Thread.currentThread().getContextClassLoader();
-            } else if (workqueue instanceof MinecraftServer server){
-               classLoader = server.getRunningThread().getContextClassLoader();
-            } else {
-                classLoader = CompletableFuture.supplyAsync(() -> Thread.currentThread().getContextClassLoader(), workqueue).orTimeout(10, TimeUnit.SECONDS).exceptionally((ex)-> {
-                    throw new RuntimeException(String.format("Couldn't join threads within timeout range. Tried joining '%s' on '%s'", Thread.currentThread().getName(), workqueue.name()));
-                }).join();
-            }
+            ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
             final Thread thread = new Thread(runnable, "Citadel Pathfinding Worker #" + (id++));
             thread.setDaemon(true);
             thread.setPriority(Thread.MAX_PRIORITY);

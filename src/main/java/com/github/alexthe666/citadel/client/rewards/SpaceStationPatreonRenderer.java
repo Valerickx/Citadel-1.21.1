@@ -38,8 +38,6 @@ public class SpaceStationPatreonRenderer extends CitadelPatreonRenderer {
         matrixStackIn.mulPose(Axis.XP.rotationDegrees(90));
         matrixStackIn.mulPose(Axis.YP.rotationDegrees(rotation * 10));
         ClientProxy.CITADEL_MODEL.resetToDefaultPose();
-        buffer.submitModel(ClientProxy.CITADEL_MODEL, RenderTypes.entityCutout(CitadelTextureManager.getColorMappedTexture(id, CITADEL_TEXTURE, colors)), matrixStackIn, light, 0, -1, null);
-        buffer.submitModel(ClientProxy.CITADEL_MODEL, RenderTypes.eyes(CITADEL_LIGHTS_TEXTURE), matrixStackIn, light, 0, -1, null);
         matrixStackIn.popPose();
         matrixStackIn.popPose();
     }

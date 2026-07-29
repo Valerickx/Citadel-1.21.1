@@ -301,7 +301,6 @@ public class AdvancedPathNavigate extends AbstractAdvancedPathNavigate {
                 }
             }
 
-            DebugPackets.sendPathFindingPacket(this.level, this.mob, this.path, this.maxDistanceToWaypoint);
             if (!this.isDone()) {
                 Vec3 vector3d2 = this.getEntityPosAtNode(this.path.getNextNodeIndex());
                 BlockPos blockpos = BlockPos.containing(vector3d2);
@@ -540,7 +539,7 @@ public class AdvancedPathNavigate extends AbstractAdvancedPathNavigate {
                 return handlePathPointOnLadder(pEx);
             } else if (ourEntity.isInWater()) {
                 return handleEntityInWater(oldIndex, pEx);
-            } else if (level.random.nextInt(10) == 0) {
+            } else if (level.getRandom().nextInt(10) == 0) {
                 if (!pEx.isOnLadder() && pExNext != null && pExNext.isOnLadder()) {
                     speedModifier = getSpeedFactor() / 4.0;
                 } else {

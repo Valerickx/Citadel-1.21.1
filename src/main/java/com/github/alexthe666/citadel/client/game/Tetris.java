@@ -236,14 +236,27 @@ public class Tetris {
         return xIn;
     }
 
-    private void renderTetromino(TetrominoShape shape, BlockState blockState, Rotation fallingRotation, float x, float y, float scale, float offsetX, float offsetY) {
+    private void renderTetromino(GuiGraphicsExtractor guiGraphics, TetrominoShape shape, BlockState blockState, Rotation fallingRotation, float x, float y, float scale, float offsetX, float offsetY) {
         for (Vec3i vec : shape.getRelativePositions()) {
             Vec3i vec2 = transform(vec, fallingRotation, Vec3i.ZERO);
-            renderBlockState(blockState, offsetX + (x + vec2.getX()) * scale, offsetY + (y + vec2.getY()) * scale, scale);
+            renderBlockState(guiGraphics, blockState, offsetX + (x + vec2.getX()) * scale, offsetY + (y + vec2.getY()) * scale, scale);
         }
     }
 
-    private void renderBlockState(BlockState state, float offsetX, float offsetY, float size) {
+    private void renderBlockState(GuiGraphicsExtractor guiGraphics, BlockState state, float offsetX, float offsetY, float size) {
+        // 26.2's GUI extraction API no longer exposes the old immediate-mode
+        // block renderer.  Tetris only needs a small, readable tile here, so
+        // draw the tile directly through the extractor instead.
+        int left = Math.round(offsetX);
+        int top = Math.round(offsetY);
+        int right = Math.round(offsetX + size);
+        int bottom = Math.round(offsetY + size);
+        int color = 0xFF000000 | (state.hashCode() * 0x45D9F3B & 0x00FFFFFF);
+        guiGraphics.fill(left, top, right, bottom, color);
+        if (right - left > 2 && bottom - top > 2) {
+            guiGraphics.fill(left + 1, top + 1, right - 1, top + 2, 0x55FFFFFF);
+            guiGraphics.fill(left + 1, bottom - 2, right - 1, bottom - 1, 0x55000000);
+        }
     }
 
     public void render(TitleScreen screen, GuiGraphicsExtractor guiGraphics, float partialTick) {
@@ -261,16 +274,16 @@ public class Tetris {
                         state = Blocks.GLOWSTONE.defaultBlockState();
                     }
                     if (state != null) {
-                        renderBlockState(state, offsetX + i * scale, offsetY + (max - j - 1) * scale, scale);
+                        renderBlockState(guiGraphics, state, offsetX + i * scale, offsetY + (max - j - 1) * scale, scale);
                     }
                 }
             }
             if (fallingShape != null) {
                 float lerpedFallingY = prevFallingY + (fallingY - prevFallingY) * partialTick;
-                renderTetromino(fallingShape, fallingBlock, fallingRotation, fallingX, lerpedFallingY, scale, offsetX, offsetY);
+                renderTetromino(guiGraphics, fallingShape, fallingBlock, fallingRotation, fallingX, lerpedFallingY, scale, offsetX, offsetY);
             }
             if (nextShape != null) {
-                renderTetromino(nextShape, nextBlock, Rotation.NONE, 0, 0, scale, screen.width * 0.85F, screen.height * 0.4F);
+                renderTetromino(guiGraphics, nextShape, nextBlock, Rotation.NONE, 0, 0, scale, screen.width * 0.85F, screen.height * 0.4F);
             }
             float hue = (System.currentTimeMillis() % 6000) / 6000f;
             int rainbow = Color.HSBtoRGB(hue, 0.6f, 1);

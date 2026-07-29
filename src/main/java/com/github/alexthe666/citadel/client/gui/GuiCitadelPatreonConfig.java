@@ -60,17 +60,17 @@ public class GuiCitadelPatreonConfig extends OptionsSubScreen {
         return value;
     }
 
-    public void render(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
-        this.renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
+    public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
+        this.extractBackground(guiGraphics, mouseX, mouseY, partialTicks);
         guiGraphics.centeredText(this.font, this.title, this.width / 2, 20, 16777215);
-        super.render(guiGraphics, mouseX, mouseY, partialTicks);
+        super.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
     }
 
     protected void init() {
         super.init();
         int i = this.width / 2;
         int j = this.height / 6;
-        Button doneButton = Button.builder(CommonComponents.GUI_DONE, (p_213079_1_) -> Minecraft.getInstance().setScreen(this.lastScreen)).size(200, 20).pos(i - 100, j + 120).build();
+        Button doneButton = Button.builder(CommonComponents.GUI_DONE, (p_213079_1_) -> Minecraft.getInstance().setScreenAndShow(this.lastScreen)).size(200, 20).pos(i - 100, j + 120).build();
         this.addRenderableWidget(doneButton);
         this.addRenderableWidget(distSlider = new ExtendedSlider(i - 150 / 2 - 25, j + 30, 150, 20, Component.translatable("citadel.gui.orbit_dist").append(Component.translatable(": ")), Component.translatable(""), 0.125F, 5F, rotateDist, 0.1D, 1, true) {
             @Override

@@ -14,7 +14,7 @@ public abstract class BasicEntityModel<T extends Entity> extends Model<T> {
     public int textureHeight = 32;
 
     protected BasicEntityModel() {
-        this(RenderType::entityCutoutNoCull);
+        this(location -> null);
     }
 
     protected BasicEntityModel(Function<Identifier, RenderType> renderType) {

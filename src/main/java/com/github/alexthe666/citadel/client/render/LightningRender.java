@@ -28,29 +28,9 @@ public class LightningRender {
     private final Map<Object, BoltOwnerData> boltOwners = new Object2ObjectOpenHashMap<>();
 
     public void render(float partialTicks, PoseStack PoseStackIn, OrderedSubmitNodeCollector bufferIn) {
-        Timestamp timestamp = new Timestamp(minecraft.level.getGameTime(), partialTicks);
-        boolean refresh = timestamp.isPassed(refreshTimestamp, (1 / REFRESH_TIME));
-        if (refresh) {
-            refreshTimestamp = timestamp;
-        }
-        bufferIn.submitCustomGeometry(PoseStackIn, RenderType.lightning(), (buffer, poseStack) -> {
-            Matrix4f matrix = poseStack.last().pose();
-            for (Iterator<Map.Entry<Object, BoltOwnerData>> iter = boltOwners.entrySet().iterator(); iter.hasNext(); ) {
-                Map.Entry<Object, BoltOwnerData> entry = iter.next();
-                BoltOwnerData data = entry.getValue();
-                if (refresh) {
-                    data.bolts.removeIf(bolt -> bolt.tick(timestamp));
-                }
-                if (data.bolts.isEmpty() && data.lastBolt != null && data.lastBolt.getSpawnFunction().isConsecutive()) {
-                    data.addBolt(new BoltInstance(data.lastBolt, timestamp), timestamp);
-                }
-                data.bolts.forEach(bolt -> bolt.render(matrix, buffer, timestamp));
-
-                if (data.bolts.isEmpty() && timestamp.isPassed(data.lastUpdateTimestamp, MAX_OWNER_TRACK_TIME)) {
-                    iter.remove();
-                }
-            }
-        });
+        // Custom immediate-mode geometry was removed in 26.2. Lightning
+        // extraction is intentionally skipped until a render pipeline-backed
+        // implementation is available.
     }
 
     public void update(Object owner, LightningBoltData newBoltData, float partialTicks) {

@@ -241,8 +241,8 @@ public class TabulaModelBlock
             }
 
             List<JsonElement> list1 = this.getItemOverrides(p_deserialize_3_, jsonobject);
-            Identifier Identifier = s.isEmpty() ? null : Identifier.parse(s);
-            return new TabulaModelBlock(Identifier, list, map, flag, true, itemcameratransforms, list1);
+            Identifier identifier = s.isEmpty() ? null : Identifier.parse(s);
+            return new TabulaModelBlock(identifier, list, map, flag, true, itemcameratransforms, list1);
         }
 
         protected List<JsonElement> getItemOverrides(JsonDeserializationContext deserializationContext, JsonObject object)

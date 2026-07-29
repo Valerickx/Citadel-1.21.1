@@ -39,12 +39,12 @@ public class EntityLinkButton extends Button {
         int lvt_5_1_ = 0;
         int lvt_6_1_ = 30;
         float f = (float) data.getScale();
-        guiGraphics.pose().push();
+        guiGraphics.pose().pushMatrix();
         guiGraphics.pose().translate(this.getX(), this.getY());
         guiGraphics.pose().scale(f, f);
         this.drawBtn(false, guiGraphics, 0, 0, lvt_5_1_, lvt_6_1_, 24, 24);
         Entity model = null;
-        EntityType<?> type = BuiltInRegistries.ENTITY_TYPE.get(Identifier.parse(data.getEntity())).orElse(null);
+        EntityType<?> type = BuiltInRegistries.ENTITY_TYPE.get(Identifier.parse(data.getEntity())).map(net.minecraft.core.Holder::value).orElse(null);
         if (type != null) {
             model = renderedEntites.computeIfAbsent(data.getEntity(), k -> type.create(Minecraft.getInstance().level, net.minecraft.world.entity.EntitySpawnReason.LOAD));
         }
@@ -63,7 +63,7 @@ public class EntityLinkButton extends Button {
             lvt_5_1_ = 24;
         }
         this.drawBtn(!this.isHovered, guiGraphics, 0, 0, lvt_5_1_, lvt_6_1_, 24, 24);
-        guiGraphics.pose().pop();
+        guiGraphics.pose().popMatrix();
     }
 
     public void drawBtn(boolean color, GuiGraphicsExtractor guiGraphics, int p_238474_2_, int p_238474_3_, int p_238474_4_, int p_238474_5_, int p_238474_6_, int p_238474_7_) {
@@ -72,9 +72,9 @@ public class EntityLinkButton extends Button {
             int r = (widgetColor & 0xFF0000) >> 16;
             int g = (widgetColor & 0xFF00) >> 8;
             int b = (widgetColor & 0xFF);
-            BookBlit.blitWithColor(guiGraphics, bookGUI.getBookWidgetTexture(),  p_238474_2_, p_238474_3_, 0, (float) p_238474_4_, (float) p_238474_5_, p_238474_6_, p_238474_7_, 256, 256, r, g, b, 255);
+            BookBlit.blitWithColor(guiGraphics, bookGUI.getBookWidgetTexture(),  p_238474_2_, p_238474_3_, 0, p_238474_4_, p_238474_5_, p_238474_6_, p_238474_7_, 256, 256, r, g, b, 255);
         } else {
-            guiGraphics.blit(bookGUI.getBookWidgetTexture(), p_238474_2_, p_238474_3_, 0, (float) p_238474_4_, (float) p_238474_5_, p_238474_6_, p_238474_7_, 256, 256);
+            guiGraphics.blit(bookGUI.getBookWidgetTexture(), p_238474_2_, p_238474_3_, p_238474_4_, p_238474_5_, p_238474_6_, p_238474_7_, 256, 256);
         }
     }
 

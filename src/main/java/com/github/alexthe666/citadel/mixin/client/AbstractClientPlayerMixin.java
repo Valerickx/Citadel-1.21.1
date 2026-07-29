@@ -17,7 +17,7 @@ import java.util.Optional;
 @Mixin(AbstractClientPlayer.class)
 public abstract class AbstractClientPlayerMixin extends Player {
     public AbstractClientPlayerMixin(Level p_250508_, BlockPos p_250289_, float p_251702_, GameProfile p_252153_) {
-        super(p_250508_, p_250289_, p_251702_, p_252153_);
+        super(p_250508_, p_252153_);
     }
 
     @ModifyReturnValue(method = "getSkin", at = @At("TAIL"))

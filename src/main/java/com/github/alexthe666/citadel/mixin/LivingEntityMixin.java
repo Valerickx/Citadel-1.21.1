@@ -19,7 +19,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin extends Entity implements ICitadelDataEntity {
 
-    private static final EntityDataAccessor<CompoundTag> CITADEL_DATA = SynchedEntityData.defineId(LivingEntity.class, EntityDataSerializers.COMPOUND_TAG);
+    private CompoundTag citadelData = new CompoundTag();
 
     protected LivingEntityMixin(EntityType<? extends Entity> entityType, Level world) {
         super(entityType, world);
@@ -27,7 +27,6 @@ public abstract class LivingEntityMixin extends Entity implements ICitadelDataEn
 
     @Inject(at = @At("TAIL"), remap = CitadelConstants.REMAPREFS, method = "defineSynchedData")
     private void citadel_registerData(SynchedEntityData.Builder builder, CallbackInfo ci) {
-        builder.define(CITADEL_DATA, new CompoundTag());
     }
 
     @Inject(at = @At("TAIL"), remap = CitadelConstants.REMAPREFS, method = "addAdditionalSaveData")
@@ -41,15 +40,15 @@ public abstract class LivingEntityMixin extends Entity implements ICitadelDataEn
     @Inject(at = @At("TAIL"), remap = CitadelConstants.REMAPREFS, method = "readAdditionalSaveData")
     private void citadel_readAdditional(CompoundTag compoundNBT, CallbackInfo ci) {
         if (compoundNBT.contains("CitadelData")) {
-            setCitadelEntityData(compoundNBT.getCompound("CitadelData"));
+            setCitadelEntityData(compoundNBT.getCompound("CitadelData").orElse(new CompoundTag()));
         }
     }
 
     public CompoundTag getCitadelEntityData() {
-        return entityData.get(CITADEL_DATA);
+        return citadelData;
     }
 
     public void setCitadelEntityData(CompoundTag nbt) {
-        entityData.set(CITADEL_DATA, nbt);
+        citadelData = nbt;
     }
 }

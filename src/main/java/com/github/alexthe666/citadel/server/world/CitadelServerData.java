@@ -29,7 +29,7 @@ public class CitadelServerData extends SavedData {
     }
 
     public static SavedDataType<CitadelServerData> type(MinecraftServer server) {
-        return new SavedDataType<>(IDENTIFIER, () -> new CitadelServerData(server), Codec.unit(() -> new CitadelServerData(server)), null);
+        return new SavedDataType<>(IDENTIFIER, () -> new CitadelServerData(server), Codec.STRING.xmap(value -> new CitadelServerData(server), value -> ""), null);
     }
 
     public static CitadelServerData get(MinecraftServer server) {
@@ -47,7 +47,7 @@ public class CitadelServerData extends SavedData {
     public static CitadelServerData load(MinecraftServer server, CompoundTag tag) {
         CitadelServerData data = new CitadelServerData(server);
         if(tag.contains("TickRateTracker")){
-            data.tickRateTracker = new ServerTickRateTracker(server, tag.getCompound("TickRateTracker"));
+            data.tickRateTracker = new ServerTickRateTracker(server, tag.getCompound("TickRateTracker").orElse(new CompoundTag()));
         }else{
             data.tickRateTracker = new ServerTickRateTracker(server);
         }

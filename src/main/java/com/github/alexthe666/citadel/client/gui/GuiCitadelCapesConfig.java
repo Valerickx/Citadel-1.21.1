@@ -37,10 +37,10 @@ public class GuiCitadelCapesConfig extends OptionsSubScreen {
     protected void addOptions() {
     }
 
-    public void render(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
-        this.renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
+    public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
+        this.extractBackground(guiGraphics, mouseX, mouseY, partialTicks);
         guiGraphics.centeredText(this.font, this.title, this.width / 2, 20, 16777215);
-        super.render(guiGraphics, mouseX, mouseY, partialTicks);
+        super.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
         int i = this.width / 2;
         int j = this.height / 6;
         ClientProxy.hideFollower = true;
@@ -59,7 +59,7 @@ public class GuiCitadelCapesConfig extends OptionsSubScreen {
         super.init();
         int i = this.width / 2;
         int j = this.height / 6;
-        Button doneButton = Button.builder(CommonComponents.GUI_DONE, (p_213079_1_) -> Minecraft.getInstance().setScreen(this.lastScreen)).size(200, 20).pos(i - 100, j + 140).build();
+        Button doneButton = Button.builder(CommonComponents.GUI_DONE, (p_213079_1_) -> Minecraft.getInstance().setScreenAndShow(this.lastScreen)).size(200, 20).pos(i - 100, j + 140).build();
         this.addRenderableWidget(doneButton);
         button = Button.builder(getCapeButtonText(), (p_213079_1_) -> {
             CitadelCapes.Cape currentCape = CitadelCapes.getCapesFor(Minecraft.getInstance().player.getUUID()).stream().filter(cape -> cape.getIdentifier().equals(capeType)).findFirst().orElse(null);

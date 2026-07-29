@@ -20,7 +20,7 @@ import java.util.function.Function;
 public abstract class HumanoidModelMixin extends Model {
 
     public HumanoidModelMixin(Function<Identifier, RenderType> p_103110_) {
-        super(p_103110_);
+        super(null, p_103110_);
     }
 
     @Inject(at = @At("HEAD"), remap = CitadelConstants.REMAPREFS, method = "poseRightArm", cancellable = true)

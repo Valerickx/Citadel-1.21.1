@@ -34,8 +34,9 @@ public class CitadelEvents {
         if (CitadelConstants.DEBUG) {
             if (event.getEntity() instanceof Player player) {
                 CompoundTag tag = CitadelEntityData.getCitadelTag(player);
-                tag.putInt("CitadelInt", tag.getInt("CitadelInt") + 1);
-                Citadel.LOGGER.debug("Citadel Data Tag tracker example: {}", tag.getInt("CitadelInt"));
+                int value = tag.getInt("CitadelInt").orElse(0) + 1;
+                tag.putInt("CitadelInt", value);
+                Citadel.LOGGER.debug("Citadel Data Tag tracker example: {}", value);
             }
         }
     }
@@ -43,7 +44,7 @@ public class CitadelEvents {
     @SubscribeEvent
     public void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
         if (event.getLevel().getBlockState(event.getPos()).is(Blocks.LECTERN) && LecternBooks.isLecternBook(event.getItemStack())) {
-            event.getEntity().getCooldowns().addCooldown(event.getItemStack().getItem(), 1);
+            event.getEntity().getCooldowns().addCooldown(event.getItemStack(), 1);
             BlockState oldLectern = event.getLevel().getBlockState(event.getPos());
             if (event.getLevel().getBlockEntity(event.getPos()) instanceof LecternBlockEntity oldBe && !oldBe.hasBook()) {
                 BlockState newLectern = Citadel.LECTERN.get().defaultBlockState().setValue(CitadelLecternBlock.FACING, oldLectern.getValue(LecternBlock.FACING)).setValue(CitadelLecternBlock.POWERED, oldLectern.getValue(LecternBlock.POWERED)).setValue(CitadelLecternBlock.HAS_BOOK, true);

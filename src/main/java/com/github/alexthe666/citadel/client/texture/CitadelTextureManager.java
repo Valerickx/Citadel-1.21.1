@@ -20,7 +20,7 @@ public class CitadelTextureManager {
 
     public static Identifier getColorMappedTexture(Identifier namespace, Identifier textureLoc, int[] colors){
         TextureManager textureManager = Minecraft.getInstance().getTextureManager();
-        AbstractTexture abstracttexture = textureManager.getTexture(namespace, MissingTextureAtlasSprite.getLocation());
+        AbstractTexture abstracttexture = textureManager.getTexture(namespace);
         if (abstracttexture == textureManager.getTexture(MissingTextureAtlasSprite.getLocation())) {
             textureManager.register(namespace, new ColorMappedTexture(textureLoc, colors));
         }
@@ -29,7 +29,7 @@ public class CitadelTextureManager {
 
     public static VideoFrameTexture getVideoTexture(Identifier namespace, int defaultWidth, int defaultHeight){
         TextureManager textureManager = Minecraft.getInstance().getTextureManager();
-        AbstractTexture abstracttexture = textureManager.getTexture(namespace, MissingTextureAtlasSprite.getLocation());
+        AbstractTexture abstracttexture = textureManager.getTexture(namespace);
         if (abstracttexture == textureManager.getTexture(MissingTextureAtlasSprite.getLocation())) {
             abstracttexture = new VideoFrameTexture(new NativeImage(defaultWidth, defaultHeight, false));
             textureManager.register(namespace, abstracttexture);

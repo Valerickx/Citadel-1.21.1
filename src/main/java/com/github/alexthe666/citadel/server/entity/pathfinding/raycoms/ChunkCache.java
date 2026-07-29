@@ -69,7 +69,7 @@ public class ChunkCache implements LevelReader {
         for (int k = this.chunkX; k <= i; ++k) {
             for (int l = this.chunkZ; l <= j; ++l) {
                 if (WorldChunkUtil.isEntityChunkLoaded(world, new ChunkPos(k, l)) && worldIn.getChunkSource() instanceof ServerChunkCache serverChunkCache) {
-                    final ChunkHolder holder = serverChunkCache.chunkMap.getVisibleChunkIfPresent(ChunkPos.asLong(k, l));
+                    final ChunkHolder holder = serverChunkCache.chunkMap.getVisibleChunkIfPresent(ChunkPos.pack(k, l));
                     if (holder != null) {
                         this.chunkArray[k - this.chunkX][l - this.chunkZ] = holder.getFullChunkFuture().getNow(ChunkHolder.UNLOADED_LEVEL_CHUNK).orElse(null);
                     }
@@ -78,8 +78,8 @@ public class ChunkCache implements LevelReader {
         }
         this.dimType = type;
 
-        minBuildHeight = worldIn.getMinBuildHeight();
-        maxBuildHeight = worldIn.getMaxBuildHeight();
+        minBuildHeight = worldIn.getMinY();
+        maxBuildHeight = worldIn.getMinY() + worldIn.dimensionType().height();
     }
 
     /**
@@ -107,12 +107,10 @@ public class ChunkCache implements LevelReader {
         return this.chunkArray[i][j].getBlockEntity(pos, createType);
     }
 
-    @Override
     public int getMinBuildHeight() {
         return minBuildHeight;
     }
 
-    @Override
     public int getMaxBuildHeight() {
         return maxBuildHeight;
     }
@@ -241,7 +239,6 @@ public class ChunkCache implements LevelReader {
         return false;
     }
 
-    @Override
     public int getSeaLevel() {
         return 0;
     }
@@ -255,7 +252,6 @@ public class ChunkCache implements LevelReader {
         return x >= 0 && x < chunkArray.length && z >= 0 && z < chunkArray[x].length && chunkArray[x][z] != null;
     }
 
-    @Override
     public float getShade(final Direction direction, final boolean b) {
         return 0;
     }
@@ -263,5 +259,10 @@ public class ChunkCache implements LevelReader {
     @Override
     public LevelLightEngine getLightEngine() {
         return null;
+    }
+
+    @Override
+    public net.minecraft.world.attribute.EnvironmentAttributeReader environmentAttributes() {
+        return world.environmentAttributes();
     }
 }

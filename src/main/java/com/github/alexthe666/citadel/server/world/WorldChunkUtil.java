@@ -35,7 +35,7 @@ public class WorldChunkUtil {
      */
     public static boolean isChunkLoaded(final LevelAccessor world, final int x, final int z) {
         if (world.getChunkSource() instanceof ServerChunkCache) {
-            final ChunkHolder holder = ((ServerChunkCache) world.getChunkSource()).chunkMap.getVisibleChunkIfPresent(ChunkPos.asLong(x, z));
+            final ChunkHolder holder = ((ServerChunkCache) world.getChunkSource()).chunkMap.getVisibleChunkIfPresent(ChunkPos.pack(x, z));
             if (holder != null) {
                 return holder.getFullChunkFuture().getNow(ChunkHolder.UNLOADED_LEVEL_CHUNK).isSuccess();
             }
@@ -54,7 +54,7 @@ public class WorldChunkUtil {
      * @return true if loaded
      */
     public static boolean isChunkLoaded(final LevelAccessor world, final ChunkPos pos) {
-        return isChunkLoaded(world, pos.x, pos.z);
+        return isChunkLoaded(world, pos.x(), pos.z());
     }
 
     /**

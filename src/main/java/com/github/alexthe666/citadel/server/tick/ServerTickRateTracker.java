@@ -34,7 +34,7 @@ public class ServerTickRateTracker extends TickRateTracker {
     }
     @Override
     public void tickEntityAtCustomRate(Entity entity) {
-        if(!entity.level().isClientSide && entity.level() instanceof ServerLevel){
+        if(!entity.level().isClientSide() && entity.level() instanceof ServerLevel){
             ((ServerLevel)entity.level()).tickNonPassenger(entity);
         }
     }

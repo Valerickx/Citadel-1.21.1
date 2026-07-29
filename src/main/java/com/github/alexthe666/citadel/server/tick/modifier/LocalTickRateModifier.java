@@ -23,16 +23,16 @@ public abstract class LocalTickRateModifier extends TickRateModifier {
     public CompoundTag toTag() {
         CompoundTag tag = super.toTag();
         tag.putDouble("Range", range);
-        tag.putString("Dimension", dimension.location().toString());
+        tag.putString("Dimension", dimension.identifier().toString());
         return tag;
     }
 
     public LocalTickRateModifier(CompoundTag tag) {
         super(tag);
-        this.range = tag.getDouble("Range");
+        this.range = tag.getDouble("Range").orElse(0D);
         ResourceKey<Level> dimFromTag = Level.OVERWORLD;
         if(tag.contains("Dimension")){
-            dimFromTag = ResourceKey.create(Registries.DIMENSION, Identifier.parse(tag.getString("dimension")));
+            dimFromTag = ResourceKey.create(Registries.DIMENSION, Identifier.parse(tag.getString("Dimension").orElse("minecraft:overworld")));
         }
         this.dimension = dimFromTag;
     }

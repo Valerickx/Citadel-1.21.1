@@ -63,8 +63,6 @@ public class CitadelLecternRenderer implements BlockEntityRenderer<CitadelLecter
             poseStack.mulPose(Axis.ZP.rotationDegrees(67.5F));
             poseStack.translate(0.0D, -0.125D, 0.0D);
             this.bookModel.setupAnim(BookModel.State.forAnimation(0.0F, 0.1F, 0.9F, 1.2F));
-            submitNodeCollector.submitModel(this.bookModel, RenderTypes.entityCutout(BOOK_PAGE_TEXTURE), poseStack, state.lightCoords, 0, state.pageColor, state.breakProgress);
-            submitNodeCollector.submitModel(this.bookModel, RenderTypes.entityCutout(BOOK_BINDING_TEXTURE), poseStack, state.lightCoords, 0, state.bindingColor, state.breakProgress);
             poseStack.popPose();
         }
     }

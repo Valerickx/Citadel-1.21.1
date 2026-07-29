@@ -2,6 +2,7 @@ package com.github.alexthe666.citadel.server.item;
 
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ToolMaterial;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.block.Block;
@@ -55,7 +56,7 @@ public class CustomToolMaterial {
     }
 
     public Ingredient getRepairIngredient() {
-        return ingredient == null ? Ingredient.EMPTY : ingredient;
+        return ingredient == null ? Ingredient.of(Items.AIR) : ingredient;
     }
 
     public void setRepairMaterial(Ingredient ingredient){
