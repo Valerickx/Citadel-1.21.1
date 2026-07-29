@@ -5,7 +5,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.rendertype.RenderType;
@@ -18,9 +18,10 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.neoforge.model.data.ModelData;
 
 import java.awt.*;
 import java.util.Arrays;
@@ -68,7 +69,7 @@ public class Tetris {
                 fallingShape = null;
             } else {
                 float f = 0.15F;
-                if (InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), InputConstants.KEY_DOWN)) {
+                if (InputConstants.isKeyDown(Minecraft.getInstance().getWindow(), InputConstants.KEY_DOWN)) {
                     f = 1F;
                 }
                 fallingY += f;
@@ -166,11 +167,6 @@ public class Tetris {
                 }
             }
         }
-        if (flag) {
-            Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.EXPERIENCE_ORB_PICKUP, 1.0F));
-            flashFor = 20;
-        }
-        Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(fallingBlock.getSoundType().getPlaceSound(), 1.0F));
     }
 
     private boolean isBlocksInOffset(int xOffset, int yOffset) {
@@ -192,7 +188,7 @@ public class Tetris {
     }
 
     private boolean keyPressed(int keyId) {
-        if (keyCooldown == 0 && InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), keyId)) {
+        if (keyCooldown == 0 && InputConstants.isKeyDown(Minecraft.getInstance().getWindow(), keyId)) {
             keyCooldown = 4;
             return true;
         }
@@ -201,15 +197,14 @@ public class Tetris {
 
     private void generateNextTetromino() {
         BlockState randomState = Blocks.DIRT.defaultBlockState();
-        for (int tries = 0; tries < 5; tries++) {
-            try{
-                BlockState block = BuiltInRegistries.BLOCK.getAny().get().getDelegate().value().defaultBlockState();
-                ResolvedModel blockModel = Minecraft.getInstance().getBlockRenderer().getBlockModel(block);
-                if (!block.is(Blocks.GLOWSTONE) && !blockModel.isCustomRenderer() && blockModel.getRenderTypes(block, random, ModelData.EMPTY).contains(RenderType.solid())) {
+        for (int tries = 0; tries < 10; tries++) {
+            try {
+                BlockState block = BuiltInRegistries.BLOCK.getRandom(random).map(net.minecraft.core.Holder::value).map(Block::defaultBlockState).orElse(Blocks.DIRT.defaultBlockState());
+                if (!block.is(Blocks.GLOWSTONE) && !block.isAir()) {
                     randomState = block;
                     break;
                 }
-            }catch (Exception ignored){
+            } catch (Exception ignored) {
             }
         }
         nextShape = TetrominoShape.getRandom(random);
@@ -219,10 +214,9 @@ public class Tetris {
     private void generateTetromino() {
         fallingShape = nextShape;
         fallingBlock = nextBlock;
-        fallingRotation = Rotation.getRandom(random);
-        fallingX = restrictTetrominoX(random.nextInt(10));
-        prevFallingY = 0;
-        fallingY = -2;
+        fallingX = 10 / 2;
+        fallingY = HEIGHT - 1;
+        fallingRotation = Rotation.NONE;
     }
 
     private int restrictTetrominoX(int xIn) {
@@ -230,12 +224,8 @@ public class Tetris {
         int maxShapeX = 0;
         for (Vec3i vec : fallingShape.getRelativePositions()) {
             Vec3i vec2 = transform(vec, fallingRotation, Vec3i.ZERO);
-            if (vec2.getX() < minShapeX) {
-                minShapeX = vec2.getX();
-            }
-            if (vec2.getX() > maxShapeX) {
-                maxShapeX = vec2.getX();
-            }
+            minShapeX = Math.min(minShapeX, vec2.getX());
+            maxShapeX = Math.max(maxShapeX, vec2.getX());
         }
         if (xIn + minShapeX < 0) {
             xIn = Math.max(xIn - minShapeX, minShapeX);
@@ -254,26 +244,15 @@ public class Tetris {
     }
 
     private void renderBlockState(BlockState state, float offsetX, float offsetY, float size) {
-        TextureAtlasSprite sprite = Minecraft.getInstance().getBlockRenderer().getBlockModel(state).getParticleIcon(ModelData.EMPTY);
-        BufferBuilder bufferbuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-        float f = size * 0.5F;
-        bufferbuilder.addVertex(-f + offsetX, f + offsetY, 80.0F).setUv(sprite.getU0(), sprite.getV1());
-        bufferbuilder.addVertex(f + offsetX, f + offsetY, 80.0F).setUv(sprite.getU1(), sprite.getV1());
-        bufferbuilder.addVertex(f + offsetX, -f + offsetY, 80.0F).setUv(sprite.getU1(), sprite.getV0());
-        bufferbuilder.addVertex(-f + offsetX, -f + offsetY, 80.0F).setUv(sprite.getU0(), sprite.getV0());
-        BufferUploader.drawWithShader(bufferbuilder.buildOrThrow());
     }
 
-    public void render(TitleScreen screen, GuiGraphics guiGraphics, float partialTick) {
+    public void render(TitleScreen screen, GuiGraphicsExtractor guiGraphics, float partialTick) {
         float scale = Math.min(screen.width / 15F, screen.height / (float) HEIGHT);
         float offsetX = screen.width / 2F - scale * 5F;
         float offsetY = scale * 0.5F;
         if (started) {
-            guiGraphics.fill(RenderType.guiOverlay(), (int) (screen.width * 0.05F), (int) (screen.height * 0.3F), (int) (screen.width * 0.05F) + 70, (int) (screen.height * 0.5F),  -1873784752);
-            guiGraphics.fill(RenderType.guiOverlay(), (int) (screen.width * 0.7F), (int) (screen.height * 0.3F), (int) (screen.width * 0.7F) + 130, (int) (screen.height * 0.84F),  -1873784752);
-            RenderSystem.setShader(GameRenderer::getPositionTexShader);
-            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-            RenderSystem.setShaderTexture(0, TextureAtlas.LOCATION_BLOCKS);
+            guiGraphics.fill((int) (screen.width * 0.05F), (int) (screen.height * 0.3F), (int) (screen.width * 0.05F) + 70, (int) (screen.height * 0.5F),  -1873784752);
+            guiGraphics.fill((int) (screen.width * 0.7F), (int) (screen.height * 0.3F), (int) (screen.width * 0.7F) + 130, (int) (screen.height * 0.84F),  -1873784752);
             for (int i = 0; i < settledBlocks.length; i++) {
                 int max = settledBlocks[i].length;
                 for (int j = 0; j < max; j++) {
@@ -295,24 +274,23 @@ public class Tetris {
             }
             float hue = (System.currentTimeMillis() % 6000) / 6000f;
             int rainbow = Color.HSBtoRGB(hue, 0.6f, 1);
-            guiGraphics.pose().pushPose();
-            guiGraphics.pose().scale(2, 2, 2);
-            guiGraphics.drawCenteredString(Minecraft.getInstance().font, "SCORE", (int) (screen.width * 0.065F), (int) (screen.height * 0.175F), rainbow);
-            guiGraphics.drawCenteredString(Minecraft.getInstance().font, "" + score, (int) (screen.width * 0.065F), (int) (screen.height * 0.175F) + 10, rainbow);
-            guiGraphics.pose().popPose();
-            guiGraphics.drawString(Minecraft.getInstance().font, "[LEFT ARROW] move left", (int) (screen.width * 0.71F), (int) (screen.height * 0.55F), rainbow);
-            guiGraphics.drawString(Minecraft.getInstance().font, "[RIGHT ARROW] move right", (int) (screen.width * 0.71F), (int) (screen.height * 0.55F) + 10, rainbow);
-            guiGraphics.drawString(Minecraft.getInstance().font, "[UP ARROW] rotate", (int) (screen.width * 0.71F), (int) (screen.height * 0.55F) + 20, rainbow);
-            guiGraphics.drawString(Minecraft.getInstance().font, "[DOWN ARROW] quick drop", (int) (screen.width * 0.71F), (int) (screen.height * 0.55F) + 30, rainbow);
-            guiGraphics.drawString(Minecraft.getInstance().font, "[T] start over", (int) (screen.width * 0.71F), (int) (screen.height * 0.55F) + 50, rainbow);
-            guiGraphics.drawString(Minecraft.getInstance().font, "Happy april fools from Citadel", 5, 5, rainbow);
+            guiGraphics.pose().pushMatrix();
+            guiGraphics.pose().scale(2, 2);
+            guiGraphics.centeredText(Minecraft.getInstance().font, "SCORE", (int) (screen.width * 0.065F), (int) (screen.height * 0.175F), rainbow);
+            guiGraphics.centeredText(Minecraft.getInstance().font, "" + score, (int) (screen.width * 0.065F), (int) (screen.height * 0.175F) + 10, rainbow);
+            guiGraphics.pose().popMatrix();
+            guiGraphics.text(Minecraft.getInstance().font, "[LEFT ARROW] move left", (int) (screen.width * 0.71F), (int) (screen.height * 0.55F), rainbow);
+            guiGraphics.text(Minecraft.getInstance().font, "[RIGHT ARROW] move right", (int) (screen.width * 0.71F), (int) (screen.height * 0.55F) + 10, rainbow);
+            guiGraphics.text(Minecraft.getInstance().font, "[UP ARROW] rotate", (int) (screen.width * 0.71F), (int) (screen.height * 0.55F) + 20, rainbow);
+            guiGraphics.text(Minecraft.getInstance().font, "[DOWN ARROW] quick drop", (int) (screen.width * 0.71F), (int) (screen.height * 0.55F) + 30, rainbow);
+            guiGraphics.text(Minecraft.getInstance().font, "[T] start over", (int) (screen.width * 0.71F), (int) (screen.height * 0.55F) + 50, rainbow);
+            guiGraphics.text(Minecraft.getInstance().font, "Happy april fools from Citadel", 5, 5, rainbow);
             if(gameOver){
-                guiGraphics.pose().pushPose();
-                guiGraphics.pose().translate((int) (screen.width * 0.5F), (int) (screen.height * 0.5F), 150);
-                guiGraphics.pose().scale(3 + (float) Math.sin(hue * Math.PI) * 0.4F, 3 + (float) Math.sin(hue * Math.PI) * 0.4F, 3 + (float) Math.sin(hue * Math.PI) * 0.4F);
-                guiGraphics.pose().mulPose(Axis.ZP.rotationDegrees((float) Math.sin(hue * Math.PI) * 10));
-                guiGraphics.drawCenteredString(Minecraft.getInstance().font, "GAME OVER", 0, 0, rainbow);
-                guiGraphics.pose().popPose();
+                guiGraphics.pose().pushMatrix();
+                guiGraphics.pose().translate((int) (screen.width * 0.5F), (int) (screen.height * 0.5F));
+                guiGraphics.pose().scale(3 + (float) Math.sin(hue * Math.PI) * 0.4F, 3 + (float) Math.sin(hue * Math.PI) * 0.4F);
+                guiGraphics.centeredText(Minecraft.getInstance().font, "GAME OVER", 0, 0, rainbow);
+                guiGraphics.pose().popMatrix();
             }
         }
     }
