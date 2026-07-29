@@ -3,7 +3,7 @@ package com.github.alexthe666.citadel.mixin.client;
 import com.github.alexthe666.citadel.CitadelConstants;
 import com.github.alexthe666.citadel.client.event.EventGetFluidRenderType;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.world.level.material.FluidState;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.util.TriState;

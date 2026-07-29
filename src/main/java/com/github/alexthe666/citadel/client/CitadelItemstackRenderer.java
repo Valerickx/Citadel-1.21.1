@@ -16,7 +16,7 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.MobEffectTextureManager;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffects;
@@ -32,8 +32,8 @@ import java.util.Random;
 
 public class CitadelItemstackRenderer extends BlockEntityWithoutLevelRenderer {
 
-    private static final ResourceLocation DEFAULT_ICON_TEXTURE = ResourceLocation.parse("citadel:textures/gui/book/icon_default.png");
-    private static final Map<String, ResourceLocation> LOADED_ICONS = new HashMap<>();
+    private static final Identifier DEFAULT_ICON_TEXTURE = Identifier.parse("citadel:textures/gui/book/icon_default.png");
+    private static final Map<String, Identifier> LOADED_ICONS = new HashMap<>();
 
     private static List<Holder.Reference<MobEffect>> mobEffectList = null;
 
@@ -54,7 +54,7 @@ public class CitadelItemstackRenderer extends BlockEntityWithoutLevelRenderer {
             
             FancyItemDisplay display = stack.get(CitadelDataComponents.FANCY_ITEM_DISPLAY.get());
             if (display != null && !display.displayItem().isEmpty()) {
-                var item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(display.displayItem()));
+                var item = BuiltInRegistries.ITEM.get(Identifier.parse(display.displayItem()));
                 toRender = new ItemStack(item);
                 // Note: displayItemNbt is not supported in 1.21 component system for nested items
             }
@@ -122,14 +122,14 @@ public class CitadelItemstackRenderer extends BlockEntityWithoutLevelRenderer {
         }
         
         if (stack.getItem() == Citadel.ICON_ITEM.get()) {
-            ResourceLocation texture = DEFAULT_ICON_TEXTURE;
+            Identifier texture = DEFAULT_ICON_TEXTURE;
             IconItemDisplay display = stack.get(CitadelDataComponents.ICON_ITEM_DISPLAY.get());
             if (display != null && !display.iconLocation().isEmpty()) {
                 String iconLocationStr = display.iconLocation();
                 if (LOADED_ICONS.containsKey(iconLocationStr)) {
                     texture = LOADED_ICONS.get(iconLocationStr);
                 } else {
-                    texture = ResourceLocation.parse(iconLocationStr);
+                    texture = Identifier.parse(iconLocationStr);
                     LOADED_ICONS.put(iconLocationStr, texture);
                 }
             }

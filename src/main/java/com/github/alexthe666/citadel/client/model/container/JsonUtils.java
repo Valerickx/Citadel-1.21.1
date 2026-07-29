@@ -4,7 +4,7 @@ import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -110,7 +110,7 @@ public class JsonUtils
     public static Item getByNameOrId(String id)
     {
 
-        return BuiltInRegistries.ITEM.get(ResourceLocation.parse(id));
+        return BuiltInRegistries.ITEM.get(Identifier.parse(id));
     }
 
     public static Item getItem(JsonElement json, String memberName)

@@ -3,8 +3,8 @@ package com.github.alexthe666.citadel.client.model.basic;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.model.EntityModel;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 
 import java.util.function.Function;
@@ -17,7 +17,7 @@ public abstract class BasicEntityModel<T extends Entity> extends EntityModel<T> 
         this(RenderType::entityCutoutNoCull);
     }
 
-    protected BasicEntityModel(Function<ResourceLocation, RenderType> p_102613_) {
+    protected BasicEntityModel(Function<Identifier, RenderType> p_102613_) {
         super(p_102613_);
     }
 

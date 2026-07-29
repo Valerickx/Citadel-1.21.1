@@ -23,7 +23,7 @@ public abstract class AbstractClientPlayerMixin extends Player {
     private PlayerSkin citadel_getSkin(PlayerSkin original) {
         return Optional.ofNullable(CitadelCapes.getCurrentCape(this))
                 .map(CitadelCapes.Cape::getTexture)
-                .map(resourceLocation -> new PlayerSkin(original.texture(), original.textureUrl(), resourceLocation, resourceLocation, original.model(), original.secure()))
+                .map(Identifier -> new PlayerSkin(original.texture(), original.textureUrl(), Identifier, Identifier, original.model(), original.secure()))
                 .orElse(original);
     }
 }

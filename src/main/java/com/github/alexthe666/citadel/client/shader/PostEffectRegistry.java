@@ -7,7 +7,7 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.PostChain;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -17,9 +17,9 @@ import java.util.Map;
 
 public class PostEffectRegistry {
 
-    private static List<ResourceLocation> registry = new ArrayList<>();
+    private static List<Identifier> registry = new ArrayList<>();
 
-    private static Map<ResourceLocation, PostEffect> postEffects = new HashMap<>();
+    private static Map<Identifier, PostEffect> postEffects = new HashMap<>();
 
     public static void clear(){
         for(PostEffect postEffect : postEffects.values()){
@@ -28,30 +28,30 @@ public class PostEffectRegistry {
         postEffects.clear();
     }
 
-    public static void registerEffect(ResourceLocation resourceLocation) {
-        registry.add(resourceLocation);
+    public static void registerEffect(Identifier Identifier) {
+        registry.add(Identifier);
     }
 
     public static void onInitializeOutline() {
         clear();
         Minecraft minecraft = Minecraft.getInstance();
-        for (ResourceLocation resourceLocation : registry) {
+        for (Identifier Identifier : registry) {
             PostChain postChain;
             RenderTarget renderTarget;
             try {
-                postChain = new PostChain(minecraft.getTextureManager(), minecraft.getResourceManager(), minecraft.getMainRenderTarget(), resourceLocation);
+                postChain = new PostChain(minecraft.getTextureManager(), minecraft.getResourceManager(), minecraft.getMainRenderTarget(), Identifier);
                 postChain.resize(minecraft.getWindow().getWidth(), minecraft.getWindow().getHeight());
                 renderTarget = postChain.getTempTarget("final");
             } catch (IOException ioexception) {
-                Citadel.LOGGER.warn("Failed to load shader: {}", resourceLocation, ioexception);
+                Citadel.LOGGER.warn("Failed to load shader: {}", Identifier, ioexception);
                 postChain = null;
                 renderTarget = null;
             } catch (JsonSyntaxException jsonsyntaxexception) {
-                Citadel.LOGGER.warn("Failed to parse shader: {}", resourceLocation, jsonsyntaxexception);
+                Citadel.LOGGER.warn("Failed to parse shader: {}", Identifier, jsonsyntaxexception);
                 postChain = null;
                 renderTarget = null;
             }
-            postEffects.put(resourceLocation, new PostEffect(postChain, renderTarget, false));
+            postEffects.put(Identifier, new PostEffect(postChain, renderTarget, false));
         }
     }
 
@@ -61,13 +61,13 @@ public class PostEffectRegistry {
         }
     }
 
-    public static RenderTarget getRenderTargetFor(ResourceLocation resourceLocation) {
-        PostEffect effect = postEffects.get(resourceLocation);
+    public static RenderTarget getRenderTargetFor(Identifier Identifier) {
+        PostEffect effect = postEffects.get(Identifier);
         return effect == null ? null : effect.getRenderTarget();
     }
 
-    public static void renderEffectForNextTick(ResourceLocation resourceLocation) {
-        PostEffect effect = postEffects.get(resourceLocation);
+    public static void renderEffectForNextTick(Identifier Identifier) {
+        PostEffect effect = postEffects.get(Identifier);
         if (effect != null) {
             effect.setEnabled(true);
         }

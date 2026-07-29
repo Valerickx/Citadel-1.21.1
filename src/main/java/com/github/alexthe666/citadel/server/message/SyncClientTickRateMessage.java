@@ -5,11 +5,11 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class SyncClientTickRateMessage implements CustomPacketPayload {
-    public static final CustomPacketPayload.Type<SyncClientTickRateMessage> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("citadel", "tick_rate"));
+    public static final CustomPacketPayload.Type<SyncClientTickRateMessage> TYPE = new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath("citadel", "tick_rate"));
     public static final StreamCodec<FriendlyByteBuf, SyncClientTickRateMessage> CODEC = StreamCodec.ofMember(SyncClientTickRateMessage::write, SyncClientTickRateMessage::read);
     private CompoundTag compound;
 

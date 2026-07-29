@@ -1,7 +1,7 @@
 package com.github.alexthe666.citadel.client.video;
 
 import com.github.alexthe666.citadel.client.texture.VideoFrameTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.fml.loading.FMLPaths;
 import net.sourceforge.jaad.spi.javasound.AACAudioFileReader;
 import org.apache.logging.log4j.LogManager;
@@ -41,7 +41,7 @@ public class Video {
     private boolean muted;
 
     private String url;
-    private ResourceLocation resourceLocation;
+    private Identifier Identifier;
     private VideoFrameTexture texture;
 
     private FrameGrab frameGrabber = null;
@@ -53,9 +53,9 @@ public class Video {
     private long pausedAudioTime = 0;
     private Clip audioClip;
 
-    public Video(String url, ResourceLocation resourceLocation, VideoFrameTexture texture, double framesPerSecond, boolean muted) {
+    public Video(String url, Identifier Identifier, VideoFrameTexture texture, double framesPerSecond, boolean muted) {
         this.url = url;
-        this.resourceLocation = resourceLocation;
+        this.Identifier = Identifier;
         this.texture = texture;
         this.framesPerSecond = framesPerSecond;
         this.muted = muted;
@@ -106,7 +106,7 @@ public class Video {
         executorService.submit(() -> {
             try {
                 InputStream in = new URL(url).openStream();
-                Path path = Paths.get(getVideoCacheFolder().toString(), resourceLocation.getPath());
+                Path path = Paths.get(getVideoCacheFolder().toString(), Identifier.getPath());
                 Files.copy(in, path, StandardCopyOption.REPLACE_EXISTING);
                 in.close();
                 mp4FileOnDisk = path.toFile();
@@ -184,8 +184,8 @@ public class Video {
         this.framesPerSecond = framesPerSecond;
     }
 
-    public ResourceLocation getResourceLocation() {
-        return resourceLocation;
+    public Identifier getResourceLocation() {
+        return Identifier;
     }
 
     public File getMp4FileOnDisk() {

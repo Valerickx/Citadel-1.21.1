@@ -6,7 +6,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.gson.*;
 import net.minecraft.client.renderer.block.model.*;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemDisplayContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -24,8 +24,8 @@ public class TabulaModelBlock
 {
     private static final Logger LOGGER = LogManager.getLogger();
     @VisibleForTesting
-    static final Gson SERIALIZER = (new GsonBuilder()).registerTypeAdapter(TabulaModelBlock.class, new TabulaModelBlock.Deserializer()).registerTypeAdapter(BlockElement.class, new BlockElement.Deserializer()).registerTypeAdapter(BlockElementFace.class, new BlockElementFace.Deserializer()).registerTypeAdapter(BlockFaceUV.class, new BlockFaceUV.Deserializer()).registerTypeAdapter(ItemTransform.class, new ItemTransform.Deserializer()).registerTypeAdapter(ItemTransforms.class, new ItemTransforms.Deserializer()).registerTypeAdapter(ItemOverride.class, new ItemOverride.Deserializer()).create();
-    private final List<BlockElement> elements;
+    static final Gson SERIALIZER = (new GsonBuilder()).registerTypeAdapter(TabulaModelBlock.class, new TabulaModelBlock.Deserializer()).registerTypeAdapter(CuboidModelElement.class, new CuboidModelElement.Deserializer()).registerTypeAdapter(CuboidFace.class, new CuboidFace.Deserializer()).registerTypeAdapter(BlockFaceUV.class, new BlockFaceUV.Deserializer()).registerTypeAdapter(ItemTransform.class, new ItemTransform.Deserializer()).registerTypeAdapter(ItemTransforms.class, new ItemTransforms.Deserializer()).registerTypeAdapter(ItemOverride.class, new ItemOverride.Deserializer()).create();
+    private final List<CuboidModelElement> elements;
     private final boolean gui3d;
     public final boolean ambientOcclusion;
     private final ItemTransforms cameraTransforms;
@@ -36,7 +36,7 @@ public class TabulaModelBlock
     @VisibleForTesting
     public TabulaModelBlock parent;
     @VisibleForTesting
-    protected ResourceLocation parentLocation;
+    protected Identifier parentLocation;
 
     public static TabulaModelBlock deserialize(Reader readerIn)
     {
@@ -48,7 +48,7 @@ public class TabulaModelBlock
         return deserialize(new StringReader(jsonString));
     }
 
-    public TabulaModelBlock(@Nullable ResourceLocation parentLocationIn, List<BlockElement> elementsIn, Map<String, String> texturesIn, boolean ambientOcclusionIn, boolean gui3dIn, ItemTransforms cameraTransformsIn, List<ItemOverride> overridesIn)
+    public TabulaModelBlock(@Nullable Identifier parentLocationIn, List<CuboidModelElement> elementsIn, Map<String, String> texturesIn, boolean ambientOcclusionIn, boolean gui3dIn, ItemTransforms cameraTransformsIn, List<ItemOverride> overridesIn)
     {
         this.elements = elementsIn;
         this.ambientOcclusion = ambientOcclusionIn;
@@ -59,7 +59,7 @@ public class TabulaModelBlock
         this.overrides = overridesIn;
     }
 
-    public List<BlockElement> getElements()
+    public List<CuboidModelElement> getElements()
     {
         return this.elements.isEmpty() && this.hasParent() ? this.parent.getElements() : this.elements;
     }
@@ -84,7 +84,7 @@ public class TabulaModelBlock
         return this.parentLocation == null || this.parent != null && this.parent.isResolved();
     }
 
-    public void getParentFromMap(Map<ResourceLocation, TabulaModelBlock> p_178299_1_)
+    public void getParentFromMap(Map<Identifier, TabulaModelBlock> p_178299_1_)
     {
         if (this.parentLocation != null)
         {
@@ -92,9 +92,9 @@ public class TabulaModelBlock
         }
     }
 
-    public Collection<ResourceLocation> getOverrideLocations()
+    public Collection<Identifier> getOverrideLocations()
     {
-        Set<ResourceLocation> set = Sets.newHashSet();
+        Set<Identifier> set = Sets.newHashSet();
 
         for (ItemOverride itemoverride : this.overrides)
         {
@@ -164,7 +164,7 @@ public class TabulaModelBlock
     }
 
     @Nullable
-    public ResourceLocation getParentLocation()
+    public Identifier getParentLocation()
     {
         return this.parentLocation;
     }
@@ -192,7 +192,7 @@ public class TabulaModelBlock
         return this.parent != null && !this.cameraTransforms.hasTransform(type) ? this.parent.getTransform(type) : this.cameraTransforms.getTransform(type);
     }
 
-    public static void checkModelHierarchy(Map<ResourceLocation, TabulaModelBlock> p_178312_0_)
+    public static void checkModelHierarchy(Map<Identifier, TabulaModelBlock> p_178312_0_)
     {
         for (TabulaModelBlock TabulaModelBlock : p_178312_0_.values())
         {
@@ -229,7 +229,7 @@ public class TabulaModelBlock
         public TabulaModelBlock deserialize(JsonElement p_deserialize_1_, Type p_deserialize_2_, JsonDeserializationContext p_deserialize_3_) throws JsonParseException
         {
             JsonObject jsonobject = p_deserialize_1_.getAsJsonObject();
-            List<BlockElement> list = this.getModelElements(p_deserialize_3_, jsonobject);
+            List<CuboidModelElement> list = this.getModelElements(p_deserialize_3_, jsonobject);
             String s = this.getParent(jsonobject);
             Map<String, String> map = this.getTextures(jsonobject);
             boolean flag = this.getAmbientOcclusionEnabled(jsonobject);
@@ -242,8 +242,8 @@ public class TabulaModelBlock
             }
 
             List<ItemOverride> list1 = this.getItemOverrides(p_deserialize_3_, jsonobject);
-            ResourceLocation resourcelocation = s.isEmpty() ? null : ResourceLocation.parse(s);
-            return new TabulaModelBlock(resourcelocation, list, map, flag, true, itemcameratransforms, list1);
+            Identifier Identifier = s.isEmpty() ? null : Identifier.parse(s);
+            return new TabulaModelBlock(Identifier, list, map, flag, true, itemcameratransforms, list1);
         }
 
         protected List<ItemOverride> getItemOverrides(JsonDeserializationContext deserializationContext, JsonObject object)
@@ -288,15 +288,15 @@ public class TabulaModelBlock
             return JsonUtils.getBoolean(object, "ambientocclusion", true);
         }
 
-        protected List<BlockElement> getModelElements(JsonDeserializationContext deserializationContext, JsonObject object)
+        protected List<CuboidModelElement> getModelElements(JsonDeserializationContext deserializationContext, JsonObject object)
         {
-            List<BlockElement> list = Lists.newArrayList();
+            List<CuboidModelElement> list = Lists.newArrayList();
 
             if (object.has("elements"))
             {
                 for (JsonElement jsonelement : JsonUtils.getJsonArray(object, "elements"))
                 {
-                    list.add(deserializationContext.deserialize(jsonelement, BlockElement.class));
+                    list.add(deserializationContext.deserialize(jsonelement, CuboidModelElement.class));
                 }
             }
 

@@ -4,7 +4,7 @@ import com.github.alexthe666.citadel.Citadel;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.fml.loading.FMLPaths;
 import org.apache.commons.io.FileUtils;
 
@@ -16,18 +16,18 @@ import java.nio.file.Paths;
 
 public class SpawnBiomeConfig {
     public static final Gson GSON = new GsonBuilder().setPrettyPrinting().registerTypeAdapter(SpawnBiomeData.class, new SpawnBiomeData.Deserializer()).create();
-    private final ResourceLocation fileName;
+    private final Identifier fileName;
 
-    private SpawnBiomeConfig(ResourceLocation fileName) {
+    private SpawnBiomeConfig(Identifier fileName) {
         if (!fileName.getNamespace().endsWith(".json")) {
-            this.fileName = ResourceLocation.fromNamespaceAndPath(fileName.getNamespace(), fileName.getPath() + ".json");
+            this.fileName = Identifier.fromNamespaceAndPath(fileName.getNamespace(), fileName.getPath() + ".json");
         } else {
             this.fileName = fileName;
         }
 
     }
 
-    public static SpawnBiomeData create(ResourceLocation fileName, SpawnBiomeData dataDefault) {
+    public static SpawnBiomeData create(Identifier fileName, SpawnBiomeData dataDefault) {
         SpawnBiomeConfig config = new SpawnBiomeConfig(fileName);
         return config.getConfigData(dataDefault);
     }

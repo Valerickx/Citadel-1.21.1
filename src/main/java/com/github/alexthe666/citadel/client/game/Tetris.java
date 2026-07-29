@@ -8,10 +8,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.resources.model.ResolvedModel;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.Vec3i;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -204,7 +204,7 @@ public class Tetris {
         for (int tries = 0; tries < 5; tries++) {
             try{
                 BlockState block = BuiltInRegistries.BLOCK.getAny().get().getDelegate().value().defaultBlockState();
-                BakedModel blockModel = Minecraft.getInstance().getBlockRenderer().getBlockModel(block);
+                ResolvedModel blockModel = Minecraft.getInstance().getBlockRenderer().getBlockModel(block);
                 if (!block.is(Blocks.GLOWSTONE) && !blockModel.isCustomRenderer() && blockModel.getRenderTypes(block, random, ModelData.EMPTY).contains(RenderType.solid())) {
                     randomState = block;
                     break;

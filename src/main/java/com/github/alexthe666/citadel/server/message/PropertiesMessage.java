@@ -6,13 +6,13 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class PropertiesMessage implements CustomPacketPayload {
-    public static final CustomPacketPayload.Type<PropertiesMessage> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("citadel", "properties"));
+    public static final CustomPacketPayload.Type<PropertiesMessage> TYPE = new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath("citadel", "properties"));
     public static final StreamCodec<FriendlyByteBuf, PropertiesMessage> CODEC = StreamCodec.ofMember(PropertiesMessage::write, PropertiesMessage::read);
     private String propertyID;
     private CompoundTag compound;

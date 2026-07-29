@@ -3,7 +3,7 @@ package com.github.alexthe666.citadel.config.biome;
 import com.github.alexthe666.citadel.Citadel;
 import com.google.gson.*;
 import net.minecraft.core.Holder;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.level.biome.Biome;
 
@@ -35,7 +35,7 @@ public class SpawnBiomeData {
         return this;
     }
 
-    public boolean matches(@Nullable Holder<Biome> biomeHolder, ResourceLocation registryName) {
+    public boolean matches(@Nullable Holder<Biome> biomeHolder, Identifier registryName) {
         for (List<SpawnBiomeEntry> all : biomes) {
             boolean overall = true;
             for (SpawnBiomeEntry cond : all) {
@@ -78,7 +78,7 @@ public class SpawnBiomeData {
             this.value = value;
         }
 
-        public boolean matches(@Nullable Holder<Biome> biomeHolder, ResourceLocation registryName) {
+        public boolean matches(@Nullable Holder<Biome> biomeHolder, Identifier registryName) {
             if(type.isDepreciated()){
                 Citadel.LOGGER.warn("biome config: BIOME_DICT and BIOME_CATEGORY are no longer valid in 1.19+. Please use BIOME_TAG instead.");
                 return false;

@@ -5,7 +5,7 @@ import com.google.common.collect.ImmutableMap;
 import com.mojang.math.Transformation;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.*;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemDisplayContext;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,17 +29,17 @@ public class VanillaTabulaModel implements UnbakedModel {
         this.transforms = transforms;
     }
 
-    public Collection<ResourceLocation> getDependencies() {
+    public Collection<Identifier> getDependencies() {
         return ImmutableList.of();
     }
 
     @Override
-    public void resolveParents(Function<ResourceLocation, UnbakedModel> p_119538_) {
+    public void resolveParents(Function<Identifier, UnbakedModel> p_119538_) {
 
     }
 
     @Override
-    public @Nullable BakedModel bake(ModelBaker baker, Function<Material, TextureAtlasSprite> spriteGetter, ModelState state) {
+    public @Nullable ResolvedModel bake(ModelBaker baker, Function<Material, TextureAtlasSprite> spriteGetter, ModelState state) {
         return null;
     }
 
@@ -229,7 +229,7 @@ public class VanillaTabulaModel implements UnbakedModel {
     @Nullable
     @Override
     public IBakedModel bake(ModelBakery bakery, Function spriteGetter, ISprite sprite, VertexFormat format) {
-        TextureAtlasSprite spriteA = (TextureAtlasSprite) spriteGetter.apply(this.textures.isEmpty() ? ResourceLocation.parse("missingno") : this.textures.get(0));
+        TextureAtlasSprite spriteA = (TextureAtlasSprite) spriteGetter.apply(this.textures.isEmpty() ? Identifier.parse("missingno") : this.textures.get(0));
         TextureAtlasSprite particleSprite = this.particle == null ? spriteA : (TextureAtlasSprite) spriteGetter.apply(this.particle);
         ImmutableList.Builder<BakedQuad> builder = ImmutableList.builder();
         TabulaMatrix matrix = new TabulaMatrix();
