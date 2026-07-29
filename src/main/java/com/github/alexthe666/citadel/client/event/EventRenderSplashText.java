@@ -1,16 +1,16 @@
 package com.github.alexthe666.citadel.client.event;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.neoforged.bus.api.Event;
 import net.minecraft.util.TriState;
 
 public class EventRenderSplashText extends Event {
     private String splashText;
 
-    private GuiGraphics guiGraphics;
+    private GuiGraphicsExtractor guiGraphics;
     private float partialTicks;
 
-    public EventRenderSplashText(String splashText, GuiGraphics guiGraphics, float partialTicks) {
+    public EventRenderSplashText(String splashText, GuiGraphicsExtractor guiGraphics, float partialTicks) {
         this.splashText = splashText;
         this.guiGraphics = guiGraphics;
         this.partialTicks = partialTicks;
@@ -28,7 +28,7 @@ public class EventRenderSplashText extends Event {
         return partialTicks;
     }
 
-    public GuiGraphics getGuiGraphics() {
+    public GuiGraphicsExtractor getGuiGraphics() {
         return guiGraphics;
     }
 
@@ -37,7 +37,7 @@ public class EventRenderSplashText extends Event {
 
         private int splashTextColor;
 
-        public Pre(String splashText, GuiGraphics guiGraphics, float partialTicks, int splashTextColor) {
+        public Pre(String splashText, GuiGraphicsExtractor guiGraphics, float partialTicks, int splashTextColor) {
             super(splashText, guiGraphics, partialTicks);
             this.splashTextColor = splashTextColor;
         }
@@ -61,7 +61,7 @@ public class EventRenderSplashText extends Event {
 
     public static class Post extends EventRenderSplashText {
 
-        public Post(String splashText, GuiGraphics guiGraphics, float partialTicks) {
+        public Post(String splashText, GuiGraphicsExtractor guiGraphics, float partialTicks) {
             super(splashText, guiGraphics, partialTicks);
         }
     }

@@ -5,7 +5,7 @@ import com.github.alexthe666.citadel.server.entity.CitadelEntityData;
 import com.github.alexthe666.citadel.server.message.PropertiesMessage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.options.OptionsSubScreen;
@@ -13,6 +13,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.neoforged.neoforge.client.gui.widget.ExtendedSlider;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 public class GuiCitadelPatreonConfig extends OptionsSubScreen {
@@ -26,45 +27,42 @@ public class GuiCitadelPatreonConfig extends OptionsSubScreen {
     private float rotateHeight;
     private String followType;
 
-    public GuiCitadelPatreonConfig(Screen parentScreenIn, Options gameSettingsIn) {
-        super(parentScreenIn, gameSettingsIn, Component.translatable("citadel.gui.patreon_customization"));
+    public GuiCitadelPatreonConfig(Screen screen, Options options) {
+        super(screen, options, Component.translatable("citadel.gui.patreon_config"));
         CompoundTag tag = CitadelEntityData.getOrCreateCitadelTag(Minecraft.getInstance().player);
-        float distance = tag.contains("CitadelRotateDistance") ? tag.getFloat("CitadelRotateDistance") : 2F;
-        float speed = tag.contains("CitadelRotateSpeed") ? tag.getFloat("CitadelRotateSpeed") : 1;
-        float height = tag.contains("CitadelRotateHeight") ? tag.getFloat("CitadelRotateHeight") : 1F;
-        rotateDist = roundTo(distance, 3);
-        rotateSpeed = roundTo(speed, 3);
-        rotateHeight = roundTo(height, 3);
-        followType = tag.contains("CitadelFollowerType") ? tag.getString("CitadelFollowerType") : "citadel";
+        this.rotateDist = tag.contains("CitadelRotateDistance") ? tag.getFloat("CitadelRotateDistance").orElse(2F) : 2F;
+        this.rotateSpeed = tag.contains("CitadelRotateSpeed") ? tag.getFloat("CitadelRotateSpeed").orElse(1F) : 1F;
+        this.rotateHeight = tag.contains("CitadelRotateHeight") ? tag.getFloat("CitadelRotateHeight").orElse(1F) : 1F;
+        this.followType = tag.contains("CitadelFollowerType") ? tag.getString("CitadelFollowerType").orElse("citadel") : "citadel";
     }
 
-    private void setSliderValue(int i, float sliderValue) {
-        boolean flag = false;
+    public void setSliderValue(int type, float value) {
         CompoundTag tag = CitadelEntityData.getOrCreateCitadelTag(Minecraft.getInstance().player);
-        if (i == 0) {
-            rotateDist = roundTo(sliderValue, 3);
-            tag.putFloat("CitadelRotateDistance", rotateDist);
-            //distSlider.isHovered = false;
-        } else if (i == 1) {
-            rotateSpeed = roundTo(sliderValue, 3);
-            tag.putFloat("CitadelRotateSpeed", rotateSpeed);
-            //speedSlider.isHovered = false;
-        } else {
-            rotateHeight = roundTo(sliderValue, 3);
-            tag.putFloat("CitadelRotateHeight", rotateHeight);
-            //heightSlider.isHovered = false;
+        if (type == 0) {
+            rotateDist = value;
+            tag.putFloat("CitadelRotateDistance", value);
+            distSlider.setValue(value);
+        }
+        if (type == 1) {
+            rotateSpeed = value;
+            tag.putFloat("CitadelRotateSpeed", value);
+            speedSlider.setValue(value);
+        }
+        if (type == 2) {
+            rotateHeight = value;
+            tag.putFloat("CitadelRotateHeight", value);
         }
         CitadelEntityData.setCitadelTag(Minecraft.getInstance().player, tag);
-        PacketDistributor.sendToServer(new PropertiesMessage("CitadelPatreonConfig", tag, Minecraft.getInstance().player.getId()));
+        ClientPacketDistributor.sendToServer(new PropertiesMessage("CitadelPatreonConfig", tag, Minecraft.getInstance().player.getId()));
     }
 
     public static float roundTo(float value, int places) {
         return value;
     }
 
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+    public void render(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
         this.renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
-        guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 20, 16777215);
+        guiGraphics.centeredText(this.font, this.title, this.width / 2, 20, 16777215);
         super.render(guiGraphics, mouseX, mouseY, partialTicks);
     }
 
@@ -72,7 +70,7 @@ public class GuiCitadelPatreonConfig extends OptionsSubScreen {
         super.init();
         int i = this.width / 2;
         int j = this.height / 6;
-        Button doneButton = Button.builder(CommonComponents.GUI_DONE, (p_213079_1_) -> this.minecraft.setScreen(this.lastScreen)).size(200, 20).pos(i - 100, j + 120).build();
+        Button doneButton = Button.builder(CommonComponents.GUI_DONE, (p_213079_1_) -> Minecraft.getInstance().setScreen(this.lastScreen)).size(200, 20).pos(i - 100, j + 120).build();
         this.addRenderableWidget(doneButton);
         this.addRenderableWidget(distSlider = new ExtendedSlider(i - 150 / 2 - 25, j + 30, 150, 20, Component.translatable("citadel.gui.orbit_dist").append(Component.translatable(": ")), Component.translatable(""), 0.125F, 5F, rotateDist, 0.1D, 1, true) {
             @Override
@@ -109,7 +107,7 @@ public class GuiCitadelPatreonConfig extends OptionsSubScreen {
             CompoundTag tag = CitadelEntityData.getOrCreateCitadelTag(Minecraft.getInstance().player);
             tag.putString("CitadelFollowerType", followType);
             CitadelEntityData.setCitadelTag(Minecraft.getInstance().player, tag);
-            PacketDistributor.sendToServer(new PropertiesMessage("CitadelPatreonConfig", tag, Minecraft.getInstance().player.getId()));
+            ClientPacketDistributor.sendToServer(new PropertiesMessage("CitadelPatreonConfig", tag, Minecraft.getInstance().player.getId()));
             changeButton.setMessage(getTypeText());
         }).size(200, 20).pos(i - 100, j).build();
         this.addRenderableWidget(changeButton);
@@ -118,6 +116,10 @@ public class GuiCitadelPatreonConfig extends OptionsSubScreen {
     @Override
     protected void addOptions() {
 
+    }
+
+    private Component getgetTypeText() {
+        return Component.translatable("citadel.gui.follower_type").append(Component.translatable("citadel.follower." + followType));
     }
 
     private Component getTypeText() {

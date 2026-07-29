@@ -7,7 +7,6 @@ import com.github.alexthe666.citadel.Citadel;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.thread.BlockableEventLoop;
 import net.neoforged.fml.LogicalSide;
-import net.neoforged.neoforge.common.util.LogicalSidedProvider;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.*;

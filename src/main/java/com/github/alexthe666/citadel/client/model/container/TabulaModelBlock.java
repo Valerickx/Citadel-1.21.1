@@ -247,7 +247,7 @@ public class TabulaModelBlock
 
         protected List<JsonElement> getItemOverrides(JsonDeserializationContext deserializationContext, JsonObject object)
         {
-            List<ItemOverride> list = Lists.newArrayList();
+            List<JsonElement> list = Lists.newArrayList();
 
             if (object.has("overrides"))
             {

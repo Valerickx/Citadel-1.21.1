@@ -18,6 +18,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.LecternBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import javax.annotation.Nullable;
 
@@ -131,20 +133,16 @@ public class CitadelLecternBlockEntity extends BlockEntity implements Clearable,
     }
 
     @Override
-    public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        if (tag.contains("Book", 10)) {
-            this.book = ItemStack.parse(registries, tag.getCompound("Book")).orElse(ItemStack.EMPTY);
-        } else {
-            this.book = ItemStack.EMPTY;
-        }
+    public void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        this.book = input.read("Book", ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
         if (!this.getBook().isEmpty()) {
-            tag.put("Book", this.getBook().save(registries));
+            output.store("Book", ItemStack.OPTIONAL_CODEC, this.getBook());
         }
     }
 

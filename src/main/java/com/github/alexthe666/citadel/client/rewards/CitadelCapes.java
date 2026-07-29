@@ -64,14 +64,15 @@ public class CitadelCapes {
 
     public static Cape getCurrentCape(Player player){
         CompoundTag tag = CitadelEntityData.getOrCreateCitadelTag(player);
-        if(tag.getBoolean("CitadelCapeDisabled")){
+        if(tag.getBoolean("CitadelCapeDisabled").orElse(false)){
             return null;
         }
         if(tag.contains("CitadelCapeType")){
-            if(tag.getString("CitadelCapeType").isEmpty()){
+            String type = tag.getString("CitadelCapeType").orElse("");
+            if(type.isEmpty()){
                 return getFirstApplicable(player);
             }else{
-                return CitadelCapes.getById(tag.getString("CitadelCapeType"));
+                return CitadelCapes.getById(type);
             }
         }else{
             return null;

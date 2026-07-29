@@ -1,14 +1,12 @@
 package com.github.alexthe666.citadel.client.texture;
 
-import com.google.gson.JsonObject;
 import com.mojang.blaze3d.platform.NativeImage;
-import com.mojang.blaze3d.platform.TextureUtil;
 import net.minecraft.client.renderer.texture.SimpleTexture;
+import net.minecraft.client.renderer.texture.TextureContents;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.ARGB;
-import net.minecraft.util.GsonHelper;
 
 import javax.annotation.Nullable;
 import java.io.InputStream;
@@ -17,60 +15,50 @@ public class ColorMappedTexture extends SimpleTexture {
 
     private int[] colors;
 
-    public ColorMappedTexture(Identifier Identifier, int[] colors) {
-        super(Identifier);
+    public ColorMappedTexture(Identifier identifier, int[] colors) {
+        super(identifier);
         this.colors = colors;
     }
 
-    public void load(ResourceManager resourceManager) {
+    @Override
+    public TextureContents loadContents(ResourceManager resourceManager) {
+        Identifier location = resourceId();
         NativeImage nativeimage = getNativeImage(resourceManager, location);
-        if(nativeimage != null){
-            if(resourceManager.getResource(location).isPresent()){
-                Resource resource = resourceManager.getResource(location).get();
-                try {
-                    // Resource metadata is now codec-backed in 26.2.  The old
-                    // MetadataSectionSerializer hook no longer exists; color
-                    // maps are therefore applied only when supplied directly.
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-            TextureUtil.prepareImage(this.getId(), nativeimage.getWidth(), nativeimage.getHeight());
-            this.bind();
-            nativeimage.upload(0, 0, 0, false);
+        if (nativeimage != null) {
+            return new TextureContents(nativeimage, null);
         }
+        return new TextureContents(new NativeImage(1, 1, false), null);
     }
 
-    private NativeImage getNativeImage(ResourceManager resourceManager, @Nullable Identifier Identifier) {
-        Resource resource = null;
-        if(Identifier == null){
+    private NativeImage getNativeImage(ResourceManager resourceManager, @Nullable Identifier identifier) {
+        if (identifier == null) {
             return null;
         }
         try {
-            resource = resourceManager.getResourceOrThrow(Identifier);
+            Resource resource = resourceManager.getResourceOrThrow(identifier);
             InputStream inputstream = resource.open();
             NativeImage nativeimage = NativeImage.read(inputstream);
             inputstream.close();
             return nativeimage;
-        }catch (Throwable throwable1) {
+        } catch (Throwable throwable1) {
             return null;
         }
     }
 
     private void processColorMap(NativeImage nativeImage, NativeImage colorMap) {
         int[] fromColorMap = new int[colorMap.getHeight()];
-        for(int i = 0; i < fromColorMap.length; i++){
-            fromColorMap[i] = colorMap.getPixelRGBA(0, i);
+        for (int i = 0; i < fromColorMap.length; i++) {
+            fromColorMap[i] = colorMap.getPixel(0, i);
         }
         for (int i = 0; i < nativeImage.getWidth(); i++) {
             for (int j = 0; j < nativeImage.getHeight(); j++) {
-                int colorAt = nativeImage.getPixelRGBA(i, j);
-                if(ARGB.alpha(ARGB.fromABGR(colorAt)) == 0){
+                int colorAt = nativeImage.getPixel(i, j);
+                if (ARGB.alpha(ARGB.fromABGR(colorAt)) == 0) {
                     continue;
                 }
                 int replaceIndex = -1;
-                for(int k = 0; k < fromColorMap.length; k++){
-                    if(colorAt == fromColorMap[k]){
+                for (int k = 0; k < fromColorMap.length; k++) {
+                    if (colorAt == fromColorMap[k]) {
                         replaceIndex = k;
                     }
                 }
@@ -78,32 +66,9 @@ public class ColorMappedTexture extends SimpleTexture {
                     int r = colors[replaceIndex] >> 16 & 255;
                     int g = colors[replaceIndex] >> 8 & 255;
                     int b = colors[replaceIndex] & 255;
-                    nativeImage.setPixelRGBA(i, j, ARGB.toABGR(ARGB.color(ARGB.alpha(ARGB.fromABGR(colorAt)), r, g, b)));
+                    nativeImage.setPixelABGR(i, j, ARGB.toABGR(ARGB.color(ARGB.alpha(ARGB.fromABGR(colorAt)), r, g, b)));
                 }
             }
         }
     }
-
-    private static class ColorsMetadataSection {
-
-        private Identifier colorRamp;
-        public ColorsMetadataSection(Identifier colorRamp) {
-            this.colorRamp = colorRamp;
-        }
-
-        private boolean areColorsEqual(int color1, int color2){
-            int r1 = color1 >> 16 & 255;
-            int g1 = color1 >> 8 & 255;
-            int b1 = color1 & 255;
-            int r2 = color2 >> 16 & 255;
-            int g2 = color2 >> 8 & 255;
-            int b2 = color2 & 255;
-            return r1 == r2 && g1 == g2 && b1 == b2;
-        }
-
-        public Identifier getColorRamp(){
-            return colorRamp;
-        }
-    }
-
 }

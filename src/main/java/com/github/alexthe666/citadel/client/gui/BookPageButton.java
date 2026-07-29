@@ -1,6 +1,6 @@
 package com.github.alexthe666.citadel.client.gui;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.sounds.SoundManager;
@@ -19,7 +19,8 @@ public class BookPageButton extends Button {
         this.bookGUI = bookGUI;
     }
 
-    public void renderWidget(GuiGraphics p_230431_1_, int p_230431_2_, int p_230431_3_, float p_230431_4_) {
+    @Override
+    protected void extractContents(GuiGraphicsExtractor p_230431_1_, int p_230431_2_, int p_230431_3_, float p_230431_4_) {
         int lvt_5_1_ = 0;
         int lvt_6_1_ = 0;
         if (this.isHovered) {
@@ -31,7 +32,7 @@ public class BookPageButton extends Button {
         drawNextArrow(p_230431_1_, this.getX(), this.getY(), lvt_5_1_, lvt_6_1_, 18, 12);
     }
 
-    public void drawNextArrow(GuiGraphics p_238474_1_, int p_238474_2_, int p_238474_3_, int p_238474_4_, int p_238474_5_, int p_238474_6_, int p_238474_7_) {
+    public void drawNextArrow(GuiGraphicsExtractor p_238474_1_, int p_238474_2_, int p_238474_3_, int p_238474_4_, int p_238474_5_, int p_238474_6_, int p_238474_7_) {
         if (this.isHovered) {
             int color = bookGUI.getWidgetColor();
             int r = (color & 0xFF0000) >> 16;

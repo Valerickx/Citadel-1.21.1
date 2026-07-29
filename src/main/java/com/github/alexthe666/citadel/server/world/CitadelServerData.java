@@ -1,12 +1,15 @@
 package com.github.alexthe666.citadel.server.world;
 
 import com.github.alexthe666.citadel.server.tick.ServerTickRateTracker;
+import com.mojang.serialization.Codec;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
-import net.minecraft.world.level.storage.DimensionDataStorage;
+import net.minecraft.world.level.saveddata.SavedDataType;
+import net.minecraft.world.level.storage.SavedDataStorage;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,7 +17,7 @@ import java.util.Map;
 public class CitadelServerData extends SavedData {
     private static Map<MinecraftServer, CitadelServerData> dataMap = new HashMap<>();
 
-    private static final String IDENTIFIER = "citadel_world_data";
+    private static final Identifier IDENTIFIER = Identifier.parse("citadel:citadel_world_data");
 
     private MinecraftServer server;
 
@@ -25,16 +28,15 @@ public class CitadelServerData extends SavedData {
         this.server = server;
     }
 
-
-    public static SavedData.Factory<CitadelServerData> factory(MinecraftServer level) {
-        return new SavedData.Factory<>(() -> new CitadelServerData(level), (tag, provider) -> load(level, tag), null);
+    public static SavedDataType<CitadelServerData> type(MinecraftServer server) {
+        return new SavedDataType<>(IDENTIFIER, () -> new CitadelServerData(server), Codec.unit(() -> new CitadelServerData(server)), null);
     }
-    
+
     public static CitadelServerData get(MinecraftServer server) {
         CitadelServerData fromMap = dataMap.get(server);
         if(fromMap == null){
-            DimensionDataStorage storage = server.getLevel(Level.OVERWORLD).getDataStorage();
-            CitadelServerData data = storage.computeIfAbsent(factory(server), IDENTIFIER);
+            SavedDataStorage storage = server.getLevel(Level.OVERWORLD).getDataStorage();
+            CitadelServerData data = storage.computeIfAbsent(type(server));
             data.setDirty();
             dataMap.put(server, data);
             return data;
@@ -59,7 +61,6 @@ public class CitadelServerData extends SavedData {
         return tickRateTracker;
     }
 
-    @Override
     public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
         if(tickRateTracker != null){
             tag.put("TickRateTracker", tickRateTracker.toTag());

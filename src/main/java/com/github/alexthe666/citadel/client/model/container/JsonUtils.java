@@ -110,7 +110,7 @@ public class JsonUtils
     public static Item getByNameOrId(String id)
     {
 
-        return BuiltInRegistries.ITEM.get(Identifier.parse(id));
+        return BuiltInRegistries.ITEM.get(Identifier.parse(id)).map(net.minecraft.core.Holder::value).orElse(null);
     }
 
     public static Item getItem(JsonElement json, String memberName)

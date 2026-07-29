@@ -1,35 +1,30 @@
 package com.github.alexthe666.citadel.client.rewards;
 
-import com.github.alexthe666.citadel.CitadelConstants;
 import com.github.alexthe666.citadel.ClientProxy;
-import com.github.alexthe666.citadel.client.shader.CitadelShaderRenderTypes;
-import com.github.alexthe666.citadel.client.shader.PostEffectRegistry;
 import com.github.alexthe666.citadel.client.texture.CitadelTextureManager;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.OrderedSubmitNodeCollector;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 
 public class SpaceStationPatreonRenderer extends CitadelPatreonRenderer {
 
-
     private static final Identifier CITADEL_TEXTURE = Identifier.fromNamespaceAndPath("citadel", "textures/patreon/citadel_model.png");
     private static final Identifier CITADEL_LIGHTS_TEXTURE = Identifier.fromNamespaceAndPath("citadel", "textures/patreon/citadel_model_glow.png");
-    private final Identifier Identifier;
+    private final Identifier id;
     private int[] colors;
 
-    public SpaceStationPatreonRenderer(Identifier Identifier, int[] colors) {
-        this.Identifier = Identifier;
+    public SpaceStationPatreonRenderer(Identifier id, int[] colors) {
+        this.id = id;
         this.colors = colors;
     }
 
 
     @Override
-    public void render(PoseStack matrixStackIn, MultiBufferSource buffer, int light, float partialTick, LivingEntity entity, float distanceIn, float rotateSpeed, float rotateHeight) {
+    public void render(PoseStack matrixStackIn, OrderedSubmitNodeCollector buffer, int light, float partialTick, LivingEntity entity, float distanceIn, float rotateSpeed, float rotateHeight) {
         float tick = entity.tickCount + partialTick;
         float bob = (float) (Math.sin(tick * 0.1F) * 1 * 0.05F - 1 * 0.05F);
         float scale = 0.4F;
@@ -43,13 +38,8 @@ public class SpaceStationPatreonRenderer extends CitadelPatreonRenderer {
         matrixStackIn.mulPose(Axis.XP.rotationDegrees(90));
         matrixStackIn.mulPose(Axis.YP.rotationDegrees(rotation * 10));
         ClientProxy.CITADEL_MODEL.resetToDefaultPose();
-        if(CitadelConstants.debugShaders()){
-            PostEffectRegistry.renderEffectForNextTick(ClientProxy.RAINBOW_AURA_POST_SHADER);
-            ClientProxy.CITADEL_MODEL.renderToBuffer(matrixStackIn, buffer.getBuffer(CitadelShaderRenderTypes.getRainbowAura(CITADEL_TEXTURE)), light, OverlayTexture.NO_OVERLAY);
-        }else{
-            ClientProxy.CITADEL_MODEL.renderToBuffer(matrixStackIn, buffer.getBuffer(RenderType.entityCutoutNoCull(CitadelTextureManager.getColorMappedTexture(Identifier, CITADEL_TEXTURE, colors))), light, OverlayTexture.NO_OVERLAY);
-            ClientProxy.CITADEL_MODEL.renderToBuffer(matrixStackIn, buffer.getBuffer(RenderType.eyes(CITADEL_LIGHTS_TEXTURE)), light, OverlayTexture.NO_OVERLAY);
-        }
+        buffer.submitModel(ClientProxy.CITADEL_MODEL, RenderTypes.entityCutout(CitadelTextureManager.getColorMappedTexture(id, CITADEL_TEXTURE, colors)), matrixStackIn, light, 0, -1, null);
+        buffer.submitModel(ClientProxy.CITADEL_MODEL, RenderTypes.eyes(CITADEL_LIGHTS_TEXTURE), matrixStackIn, light, 0, -1, null);
         matrixStackIn.popPose();
         matrixStackIn.popPose();
     }

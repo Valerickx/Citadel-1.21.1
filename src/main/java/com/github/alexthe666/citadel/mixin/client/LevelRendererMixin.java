@@ -10,7 +10,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.LevelRenderer;
-import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.client.renderer.Lightmap;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.neoforged.neoforge.common.NeoForge;
@@ -50,7 +50,7 @@ public class LevelRendererMixin {
                     target = "Lnet/minecraft/client/renderer/RenderBuffers;bufferSource()Lnet/minecraft/client/renderer/MultiBufferSource$BufferSource;",
                     shift = At.Shift.BEFORE
             ))
-    private void citadel_renderLevel_beforeEntities(DeltaTracker deltaTracker, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, Matrix4f frustumMatrix, Matrix4f projectionMatrix, CallbackInfo ci) {
+    private void citadel_renderLevel_beforeEntities(DeltaTracker deltaTracker, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, Lightmap lightTexture, Matrix4f frustumMatrix, Matrix4f projectionMatrix, CallbackInfo ci) {
         PostEffectRegistry.clearAndBindWrite(this.minecraft.getMainRenderTarget());
     }
 
@@ -60,7 +60,7 @@ public class LevelRendererMixin {
                     target = "Lnet/minecraft/client/renderer/OutlineBufferSource;endOutlineBatch()V",
                     shift = At.Shift.BEFORE
             ))
-    private void citadel_renderLevel_process(DeltaTracker deltaTracker, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, Matrix4f frustumMatrix, Matrix4f projectionMatrix, CallbackInfo ci) {
+    private void citadel_renderLevel_process(DeltaTracker deltaTracker, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, Lightmap lightTexture, Matrix4f frustumMatrix, Matrix4f projectionMatrix, CallbackInfo ci) {
         PostEffectRegistry.processEffects(this.minecraft.getMainRenderTarget());
     }
 
@@ -68,7 +68,7 @@ public class LevelRendererMixin {
             at = @At(
                     value = "TAIL"
             ))
-    private void citadel_renderLevel_end(DeltaTracker deltaTracker, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, Matrix4f frustumMatrix, Matrix4f projectionMatrix, CallbackInfo ci) {
+    private void citadel_renderLevel_end(DeltaTracker deltaTracker, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, Lightmap lightTexture, Matrix4f frustumMatrix, Matrix4f projectionMatrix, CallbackInfo ci) {
         PostEffectRegistry.blitEffects();
     }
 

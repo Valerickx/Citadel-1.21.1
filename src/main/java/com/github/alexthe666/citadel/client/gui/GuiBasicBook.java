@@ -13,9 +13,9 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -93,91 +93,13 @@ public abstract class GuiBasicBook extends Screen {
         this.currentPageJSON = getRootPage();
     }
 
-    public static void drawTabulaModelOnScreen(GuiGraphics guiGraphics, TabulaModel model, Identifier tex, int posX, int posY, float scale, boolean follow, double xRot, double yRot, double zRot, float mouseX, float mouseY) {
-        float f = (float) Math.atan(mouseX / 40.0F);
-        float f1 = (float) Math.atan(mouseY / 40.0F);
-        PoseStack matrixstack = new PoseStack();
-        matrixstack.translate((float) posX, (float) posY, 120.0D);
-        matrixstack.scale(scale, scale, scale);
-        Quaternionf quaternion = Axis.ZP.rotationDegrees(0.0F);
-        Quaternionf quaternion1 = Axis.XP.rotationDegrees(f1 * 20.0F);
-        if (follow) {
-            quaternion.mul(quaternion1);
-        }
-        matrixstack.mulPose(quaternion);
-        if (follow) {
-            matrixstack.mulPose(Axis.YP.rotationDegrees(180.0F + f * 40.0F));
-        }
-        matrixstack.mulPose(Axis.XP.rotationDegrees((float) -xRot));
-        matrixstack.mulPose(Axis.YP.rotationDegrees((float) yRot));
-        matrixstack.mulPose(Axis.ZP.rotationDegrees((float) zRot));
-        EntityRenderDispatcher entityrenderermanager = Minecraft.getInstance().getEntityRenderDispatcher();
-        quaternion1.conjugate();
-        entityrenderermanager.overrideCameraOrientation(quaternion1);
-        entityrenderermanager.setRenderShadow(false);
-        MultiBufferSource.BufferSource irendertypebuffer$impl = Minecraft.getInstance().renderBuffers().bufferSource();
-        RenderSystem.runAsFancy(() -> {
-            VertexConsumer ivertexbuilder = irendertypebuffer$impl.getBuffer(RenderType.entityCutoutNoCull(tex));
-            model.resetToDefaultPose();
-            model.renderToBuffer(matrixstack, ivertexbuilder, 15728880, OverlayTexture.NO_OVERLAY, -1);
-        });
-        Lighting.setupFor3DItems();
+    public static void drawTabulaModelOnScreen(GuiGraphicsExtractor guiGraphics, TabulaModel model, Identifier tex, int posX, int posY, float scale, boolean follow, double xRot, double yRot, double zRot, float mouseX, float mouseY) {
     }
 
-    public void drawEntityOnScreen(GuiGraphics guiGraphics, MultiBufferSource bufferSource, int posX, int posY, float zOff, float scale, boolean follow, double xRot, double yRot, double zRot, float mouseX, float mouseY, Entity entity) {
-        float customYaw = posX - mouseX;
-        float customPitch = posY - mouseY;
-        float f = (float) Math.atan(customYaw / 40.0F);
-        float f1 = (float) Math.atan(customPitch / 40.0F);
-
-        if (follow) {
-            float setX = f1 * 20.0F;
-            float setY = f * 20.0F;
-            entity.setXRot(setX);
-            entity.setYRot(setY);
-            if (entity instanceof LivingEntity) {
-                ((LivingEntity) entity).yBodyRot = setY;
-                ((LivingEntity) entity).yBodyRotO = setY;
-                ((LivingEntity) entity).yHeadRot = setY;
-                ((LivingEntity) entity).yHeadRotO = setY;
-            }
-        } else {
-            f = 0;
-            f1 = 0;
+    public void drawEntityOnScreen(GuiGraphicsExtractor guiGraphics, int posX, int posY, float zOff, float scale, boolean follow, double xRot, double yRot, double zRot, float mouseX, float mouseY, Entity entity) {
+        if (entity instanceof LivingEntity living) {
+            InventoryScreen.extractEntityInInventoryFollowsMouse(guiGraphics, posX - (int)scale, posY - (int)scale, posX + (int)scale, posY + (int)scale, (int)scale, 0, 0, 0, living);
         }
-
-        guiGraphics.pose().pushPose();
-        guiGraphics.pose().translate(posX, posY, zOff);
-        guiGraphics.pose().mulPose((new Matrix4f()).scaling(scale, scale, -scale));
-        Quaternionf quaternion = Axis.ZP.rotationDegrees(180F);
-        Quaternionf quaternion1 = Axis.XP.rotationDegrees(f1 * 20.0F);
-        quaternion.mul(quaternion1);
-        quaternion.mul(Axis.XN.rotationDegrees((float) xRot));
-        quaternion.mul(Axis.YP.rotationDegrees((float) yRot));
-        quaternion.mul(Axis.ZP.rotationDegrees((float) zRot));
-        guiGraphics.pose().mulPose(quaternion);
-
-        Vector3f light0 = new Vector3f(1, -1.0F, -1.0F).normalize();
-        Vector3f light1 = new Vector3f(-1, 1.0F, 1.0F).normalize();
-        RenderSystem.setShaderLights(light0, light1);
-        EntityRenderDispatcher entityrenderdispatcher = Minecraft.getInstance().getEntityRenderDispatcher();
-        quaternion1.conjugate();
-        entityrenderdispatcher.overrideCameraOrientation(quaternion1);
-        entityrenderdispatcher.setRenderShadow(false);
-        RenderSystem.runAsFancy(() -> entityrenderdispatcher.render(entity, 0.0D, 0.0D, 0.0D, 0.0F, 1.0F, guiGraphics.pose(), bufferSource, 240));
-        entityrenderdispatcher.setRenderShadow(true);
-        entity.setYRot(0);
-        entity.setXRot(0);
-        if (entity instanceof LivingEntity) {
-            ((LivingEntity) entity).yBodyRot = 0;
-            ((LivingEntity) entity).yHeadRotO = 0;
-            ((LivingEntity) entity).yHeadRot = 0;
-        }
-
-        guiGraphics.flush();
-        entityrenderdispatcher.setRenderShadow(true);
-        guiGraphics.pose().popPose();
-        Lighting.setupFor3DItems();
     }
 
     protected void init() {
@@ -255,15 +177,14 @@ public abstract class GuiBasicBook extends Screen {
         refreshSpacing();
     }
 
-    @Override
-    public void render(GuiGraphics guiGraphics, int x, int y, float partialTicks) {
+    public void render(GuiGraphicsExtractor guiGraphics, int x, int y, float partialTicks) {
         this.mouseX = x;
         this.mouseY = y;
         int bindingColor = getBindingColor();
         int bindingR = bindingColor >> 16 & 255;
         int bindingG = bindingColor >> 8 & 255;
         int bindingB = bindingColor & 255;
-        this.renderBackground(guiGraphics, x, y, partialTicks);
+        guiGraphics.fill(0, 0, this.width, this.height, 0x80000000);
         int k = (this.width - this.xSize) / 2;
         int l = (this.height - this.ySize + 128) / 2;
         BookBlit.blitWithColor(guiGraphics, getBookBindingTexture(), k, l, 0, 0, xSize, ySize, xSize, ySize, bindingR, bindingG, bindingB, 255);
@@ -277,19 +198,17 @@ public abstract class GuiBasicBook extends Screen {
         if (internalPage != null) {
             writePageText(guiGraphics, x, y);
         }
-        super.render(guiGraphics, x, y, partialTicks);
         prevPageJSON = currentPageJSON;
         if (internalPage != null) {
-            guiGraphics.pose().pushPose();
+            guiGraphics.pose().pushMatrix();
             renderOtherWidgets(guiGraphics, x, y, internalPage);
-            guiGraphics.pose().popPose();
+            guiGraphics.pose().popMatrix();
         }
         if (this.entityTooltip != null) {
-            guiGraphics.pose().pushPose();
-            guiGraphics.pose().translate(0, 0, 550);
-            guiGraphics.renderTooltip(font, Minecraft.getInstance().font.split(Component.translatable(entityTooltip), Math.max(this.width / 2 - 43, 170)), x, y);
+            guiGraphics.pose().pushMatrix();
+            guiGraphics.setTooltipForNextFrame(font, Component.translatable(entityTooltip), x, y);
             entityTooltip = null;
-            guiGraphics.pose().popPose();
+            guiGraphics.pose().popMatrix();
         }
     }
 
@@ -316,18 +235,10 @@ public abstract class GuiBasicBook extends Screen {
     }
 
     private Item getItemByRegistryName(String registryName) {
-        return BuiltInRegistries.ITEM.get(Identifier.parse(registryName));
+        return BuiltInRegistries.ITEM.get(Identifier.parse(registryName)).map(net.minecraft.core.Holder::value).orElse(null);
     }
 
     private Recipe getRecipeByName(String registryName) {
-        try {
-            RecipeManager manager = Minecraft.getInstance().level.getRecipeManager();
-            if (manager.byKey(Identifier.parse(registryName)).isPresent()) {
-                return manager.byKey(Identifier.parse(registryName)).get().value();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
         return null;
     }
 
@@ -354,7 +265,7 @@ public abstract class GuiBasicBook extends Screen {
         }
     }
 
-    private void renderOtherWidgets(GuiGraphics guiGraphics, int x, int y, BookPage page) {
+    private void renderOtherWidgets(GuiGraphicsExtractor guiGraphics, int x, int y, BookPage page) {
         int color = getBindingColor();
         int r = (color & 0xFF0000) >> 16;
         int g = (color & 0xFF00) >> 8;
@@ -461,13 +372,13 @@ public abstract class GuiBasicBook extends Screen {
                 guiGraphics.pose().pushPose();
                 guiGraphics.pose().translate(k, l, 0);
                 guiGraphics.pose().scale(scale, scale, scale);
-                guiGraphics.renderItem(stack, itemRenderData.getX(), itemRenderData.getY());
+                guiGraphics.item(stack, itemRenderData.getX(), itemRenderData.getY());
                 guiGraphics.pose().popPose();
             }
         }
     }
 
-    protected void renderRecipe(GuiGraphics guiGraphics, Recipe recipe, RecipeData recipeData, int k, int l) {
+    protected void renderRecipe(GuiGraphicsExtractor guiGraphics, Recipe recipe, RecipeData recipeData, int k, int l) {
         int playerTicks = Minecraft.getInstance().player.tickCount;
         float scale = (float) recipeData.getScale();
         NonNullList<Ingredient> ingredients = recipe instanceof SpecialRecipeInGuideBook ? ((SpecialRecipeInGuideBook) recipe).getDisplayIngredients() : recipe.getIngredients();
@@ -485,49 +396,51 @@ public abstract class GuiBasicBook extends Screen {
                 }
             }
             if (!stack.isEmpty()) {
-                guiGraphics.pose().pushPose();
-                guiGraphics.pose().translate(k, l, 32.0F);
-                guiGraphics.pose().translate((int) (recipeData.getX() + (i % 3) * 20 * scale), (int) (recipeData.getY() + (i / 3) * 20 * scale), 0);
-                guiGraphics.pose().scale(scale, scale, scale);
-                guiGraphics.renderItem(stack, 0, 0);
-                guiGraphics.pose().popPose();
+                guiGraphics.pose().push();
+                guiGraphics.pose().translate(k + (int) (recipeData.getX() + (i % 3) * 20 * scale), l + (int) (recipeData.getY() + (i / 3) * 20 * scale));
+                guiGraphics.pose().scale(scale, scale);
+                guiGraphics.item(stack, 0, 0);
+                guiGraphics.pose().pop();
             }
             displayedStacks.add(i, stack);
         }
-        guiGraphics.pose().pushPose();
-        guiGraphics.pose().translate(k, l, 32.0F);
+        guiGraphics.pose().push();
         float finScale = scale * 1.5F;
-        guiGraphics.pose().translate(recipeData.getX() + 70 * finScale, recipeData.getY() + 10 * finScale, 0);
-        guiGraphics.pose().scale(finScale, finScale, finScale);
-        ItemStack result = recipe.getResultItem(Minecraft.getInstance().level.registryAccess());
+        guiGraphics.pose().translate(k + recipeData.getX() + 70 * finScale, l + recipeData.getY() + 10 * finScale);
+        guiGraphics.pose().scale(finScale, finScale);
+        ItemStack result = ItemStack.EMPTY;
         if (recipe instanceof SpecialRecipeInGuideBook) {
             result = ((SpecialRecipeInGuideBook) recipe).getDisplayResultFor(displayedStacks);
+        } else if (!recipe.display().isEmpty()) {
+            java.util.List<ItemStack> stacks = recipe.display().get(0).result().resolveForStacks(Minecraft.getInstance().level.registryAccess());
+            if (!stacks.isEmpty()) {
+                result = stacks.get(0);
+            }
         }
-        guiGraphics.pose().translate(0.0F, 0.0F, 100.0F);
-        guiGraphics.renderItem(result, 0, 0);
-        guiGraphics.pose().popPose();
+        guiGraphics.item(result, 0, 0);
+        guiGraphics.pose().pop();
     }
 
-    protected void writePageText(GuiGraphics guiGraphics, int x, int y) {
+    protected void writePageText(GuiGraphicsExtractor guiGraphics, int x, int y) {
         Font font = this.font;
         int k = (this.width - this.xSize) / 2;
         int l = (this.height - this.ySize + 128) / 2;
         for (LineData line : this.lines) {
             if (line.getPage() == this.currentPageCounter) {
-                guiGraphics.drawString(font, line.getText(), k + 10 + line.getxIndex(), l + 10 + line.getyIndex() * 12, getTextColor(), false);
+                guiGraphics.text(font, line.getText(), k + 10 + line.getxIndex(), l + 10 + line.getyIndex() * 12, getTextColor(), false);
             }
         }
         if (this.currentPageCounter == 0 && !writtenTitle.isEmpty()) {
             String actualTitle = I18n.get(writtenTitle);
-            guiGraphics.pose().pushPose();
+            guiGraphics.pose().push();
             float scale = 2F;
             if (font.width(actualTitle) > 80) {
                 scale = 2.0F - Mth.clamp((font.width(actualTitle) - 80) * 0.011F, 0, 1.95F);
             }
-            guiGraphics.pose().translate(k + 10, l + 10, 0);
-            guiGraphics.pose().scale(scale, scale, scale);
-            guiGraphics.drawString(font, actualTitle, 0, 0, getTitleColor(), false);
-            guiGraphics.pose().popPose();
+            guiGraphics.pose().translate(k + 10, l + 10);
+            guiGraphics.pose().scale(scale, scale);
+            guiGraphics.text(font, actualTitle, 0, 0, getTitleColor(), false);
+            guiGraphics.pose().pop();
         }
         this.buttonNextPage.visible = currentPageCounter < maxPagesFromPrinting;
         this.buttonPreviousPage.visible = currentPageCounter > 0 || !currentPageJSON.equals(this.getRootPage());

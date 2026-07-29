@@ -5,7 +5,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.OrderedSubmitNodeCollector;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import org.apache.commons.lang3.tuple.Pair;
 import org.joml.Matrix4f;
@@ -27,30 +27,30 @@ public class LightningRender {
 
     private final Map<Object, BoltOwnerData> boltOwners = new Object2ObjectOpenHashMap<>();
 
-    public void render(float partialTicks, PoseStack PoseStackIn, MultiBufferSource bufferIn) {
-        VertexConsumer buffer = bufferIn.getBuffer(RenderType.lightning());
-        Matrix4f matrix = PoseStackIn.last().pose();
+    public void render(float partialTicks, PoseStack PoseStackIn, OrderedSubmitNodeCollector bufferIn) {
         Timestamp timestamp = new Timestamp(minecraft.level.getGameTime(), partialTicks);
         boolean refresh = timestamp.isPassed(refreshTimestamp, (1 / REFRESH_TIME));
         if (refresh) {
             refreshTimestamp = timestamp;
         }
-        for (Iterator<Map.Entry<Object, BoltOwnerData>> iter = boltOwners.entrySet().iterator(); iter.hasNext(); ) {
-            Map.Entry<Object, BoltOwnerData> entry = iter.next();
-            BoltOwnerData data = entry.getValue();
-            // tick our bolts based on the refresh rate, removing if they're now finished
-            if (refresh) {
-                data.bolts.removeIf(bolt -> bolt.tick(timestamp));
-            }
-            if (data.bolts.isEmpty() && data.lastBolt != null && data.lastBolt.getSpawnFunction().isConsecutive()) {
-                data.addBolt(new BoltInstance(data.lastBolt, timestamp), timestamp);
-            }
-            data.bolts.forEach(bolt -> bolt.render(matrix, buffer, timestamp));
+        bufferIn.submitCustomGeometry(PoseStackIn, RenderType.lightning(), (buffer, poseStack) -> {
+            Matrix4f matrix = poseStack.last().pose();
+            for (Iterator<Map.Entry<Object, BoltOwnerData>> iter = boltOwners.entrySet().iterator(); iter.hasNext(); ) {
+                Map.Entry<Object, BoltOwnerData> entry = iter.next();
+                BoltOwnerData data = entry.getValue();
+                if (refresh) {
+                    data.bolts.removeIf(bolt -> bolt.tick(timestamp));
+                }
+                if (data.bolts.isEmpty() && data.lastBolt != null && data.lastBolt.getSpawnFunction().isConsecutive()) {
+                    data.addBolt(new BoltInstance(data.lastBolt, timestamp), timestamp);
+                }
+                data.bolts.forEach(bolt -> bolt.render(matrix, buffer, timestamp));
 
-            if (data.bolts.isEmpty() && timestamp.isPassed(data.lastUpdateTimestamp, MAX_OWNER_TRACK_TIME)) {
-                iter.remove();
+                if (data.bolts.isEmpty() && timestamp.isPassed(data.lastUpdateTimestamp, MAX_OWNER_TRACK_TIME)) {
+                    iter.remove();
+                }
             }
-        }
+        });
     }
 
     public void update(Object owner, LightningBoltData newBoltData, float partialTicks) {

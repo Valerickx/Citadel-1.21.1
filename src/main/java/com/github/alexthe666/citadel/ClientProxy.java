@@ -91,12 +91,12 @@ public class ClientProxy extends ServerProxy {
                 String username = Minecraft.getInstance().player.getName().getString();
                 int height = -20;
                 if (Citadel.PATREONS.contains(username)) {
-                    Button button1 = Button.builder(Component.translatable("citadel.gui.patreon_rewards_option").withStyle(ChatFormatting.GREEN), (p_213080_2_) -> Minecraft.getInstance().setScreen(new GuiCitadelPatreonConfig(event.getScreen(), Minecraft.getInstance().options))).size(200, 20).pos(event.getScreen().width / 2 - 100, event.getScreen().height / 6 + 150 + height).build();
+                    Button button1 = Button.builder(Component.translatable("citadel.gui.patreon_rewards_option").withStyle(ChatFormatting.GREEN), (p_213080_2_) -> Minecraft.getInstance().setScreen((net.minecraft.client.gui.screens.Screen) new GuiCitadelPatreonConfig(event.getScreen(), Minecraft.getInstance().options))).size(200, 20).pos(event.getScreen().width / 2 - 100, event.getScreen().height / 6 + 150 + height).build();
                     event.addListener(button1);
                     height += 25;
                 }
                 if (!CitadelCapes.getCapesFor(Minecraft.getInstance().player.getUUID()).isEmpty()) {
-                    Button button2 = Button.builder(Component.translatable("citadel.gui.capes_option").withStyle(ChatFormatting.GREEN), (p_213080_2_) -> Minecraft.getInstance().setScreen(new GuiCitadelCapesConfig(event.getScreen(), Minecraft.getInstance().options))).size(200, 20).pos(event.getScreen().width / 2 - 100, event.getScreen().height / 6 + 150 + height).build();
+                    Button button2 = Button.builder(Component.translatable("citadel.gui.capes_option").withStyle(ChatFormatting.GREEN), (p_213080_2_) -> Minecraft.getInstance().setScreen((net.minecraft.client.gui.screens.Screen) new GuiCitadelCapesConfig(event.getScreen(), Minecraft.getInstance().options))).size(200, 20).pos(event.getScreen().width / 2 - 100, event.getScreen().height / 6 + 150 + height).build();
                     event.addListener(button2);
                     height += 25;
                 }
@@ -120,20 +120,17 @@ public class ClientProxy extends ServerProxy {
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void playerRender(RenderPlayerEvent.Pre event) {
         PoseStack matrixStackIn = event.getPoseStack();
-        String username = event.getEntity().getName().getString();
-        if (!event.getEntity().isModelPartShown(PlayerModelPart.CAPE) || event.isCanceled() || event.getEntity().isSpectator()) {
-            return;
-        }
+        String username = Minecraft.getInstance().player.getName().getString();
         if (Citadel.PATREONS.contains(username)) {
             CompoundTag tag = CitadelEntityData.getOrCreateCitadelTag(Minecraft.getInstance().player);
-            String rendererName = tag.contains("CitadelFollowerType") ? tag.getString("CitadelFollowerType") : "citadel";
+            String rendererName = tag.contains("CitadelFollowerType") ? tag.getString("CitadelFollowerType").orElse("citadel") : "citadel";
             if (!rendererName.equals("none") && !hideFollower) {
                 CitadelPatreonRenderer renderer = CitadelPatreonRenderer.get(rendererName);
                 if (renderer != null) {
-                    float distance = tag.contains("CitadelRotateDistance") ? tag.getFloat("CitadelRotateDistance") : 2F;
-                    float speed = tag.contains("CitadelRotateSpeed") ? tag.getFloat("CitadelRotateSpeed") : 1;
-                    float height = tag.contains("CitadelRotateHeight") ? tag.getFloat("CitadelRotateHeight") : 1F;
-                    renderer.render(matrixStackIn, event.getMultiBufferSource(), event.getPackedLight(), event.getPartialTick(), event.getEntity(), distance, speed, height);
+                    float distance = tag.contains("CitadelRotateDistance") ? tag.getFloat("CitadelRotateDistance").orElse(2F) : 2F;
+                    float speed = tag.contains("CitadelRotateSpeed") ? tag.getFloat("CitadelRotateSpeed").orElse(1F) : 1F;
+                    float height = tag.contains("CitadelRotateHeight") ? tag.getFloat("CitadelRotateHeight").orElse(1F) : 1F;
+                    renderer.render(matrixStackIn, event.getSubmitNodeCollector(), 15728880, event.getPartialTick(), Minecraft.getInstance().player, distance, speed, height);
                 }
             }
         }
@@ -243,7 +240,7 @@ public class ClientProxy extends ServerProxy {
     }
 
     @SubscribeEvent
-    public void renderTooltipColor(RenderTooltipEvent.Color event) {
+    public void renderTooltipColor(RenderTooltipEvent.Pre event) {
         if (event.getItemStack().getItem() instanceof ItemWithHoverAnimation hoverOver && hoverOver.canHoverOver(event.getItemStack())) {
             lastHoveredItem = event.getItemStack();
         } else {
@@ -288,7 +285,6 @@ public class ClientProxy extends ServerProxy {
             CitadelEntityData.setCitadelTag((LivingEntity) entity, compound);
         }
     }
-
 
     @Override
     public void handleClientTickRatePacket(CompoundTag compound) {

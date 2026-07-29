@@ -16,7 +16,7 @@ public class ItemCitadelDebug extends Item {
     @Override
     public InteractionResult use(Level worldIn, Player playerIn, InteractionHand handIn) {
         ItemStack itemStackIn = playerIn.getItemInHand(handIn);
-        playerIn.getCooldowns().addCooldown(this, 15);
+        playerIn.getCooldowns().addCooldown(itemStackIn, 15);
         return InteractionResult.PASS;
     }
 

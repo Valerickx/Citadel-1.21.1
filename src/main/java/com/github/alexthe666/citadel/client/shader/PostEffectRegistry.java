@@ -1,15 +1,8 @@
 package com.github.alexthe666.citadel.client.shader;
 
-import com.github.alexthe666.citadel.Citadel;
-import com.google.gson.JsonSyntaxException;
 import com.mojang.blaze3d.pipeline.RenderTarget;
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.PostChain;
 import net.minecraft.resources.Identifier;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,25 +27,6 @@ public class PostEffectRegistry {
 
     public static void onInitializeOutline() {
         clear();
-        Minecraft minecraft = Minecraft.getInstance();
-        for (Identifier Identifier : registry) {
-            PostChain postChain;
-            RenderTarget renderTarget;
-            try {
-                postChain = new PostChain(minecraft.getTextureManager(), minecraft.getResourceManager(), minecraft.getMainRenderTarget(), Identifier);
-                postChain.resize(minecraft.getWindow().getWidth(), minecraft.getWindow().getHeight());
-                renderTarget = postChain.getTempTarget("final");
-            } catch (IOException ioexception) {
-                Citadel.LOGGER.warn("Failed to load shader: {}", Identifier, ioexception);
-                postChain = null;
-                renderTarget = null;
-            } catch (JsonSyntaxException jsonsyntaxexception) {
-                Citadel.LOGGER.warn("Failed to parse shader: {}", Identifier, jsonsyntaxexception);
-                postChain = null;
-                renderTarget = null;
-            }
-            postEffects.put(Identifier, new PostEffect(postChain, renderTarget, false));
-        }
     }
 
     public static void resize(int x, int y) {
@@ -74,52 +48,18 @@ public class PostEffectRegistry {
     }
 
     public static void blitEffects() {
-        RenderSystem.enableBlend();
-        RenderSystem.enableDepthTest();
-        RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
-        for (PostEffect postEffect : postEffects.values()) {
-            if (postEffect.postChain != null && postEffect.isEnabled()) {
-                postEffect.getRenderTarget().blitToScreen(Minecraft.getInstance().getWindow().getWidth(), Minecraft.getInstance().getWindow().getHeight(), false);
-                postEffect.getRenderTarget().clear(Minecraft.ON_OSX);
-                Minecraft.getInstance().getMainRenderTarget().bindWrite(false);
-                postEffect.setEnabled(false);
-            }
-        }
-        RenderSystem.disableBlend();
-        RenderSystem.defaultBlendFunc();
     }
 
-    public static void clearAndBindWrite(RenderTarget mainTarget) {
-        for (PostEffect postEffect : postEffects.values()) {
-            if (postEffect.isEnabled() && postEffect.postChain != null) {
-                postEffect.getRenderTarget().clear(Minecraft.ON_OSX);
-                mainTarget.bindWrite(false);
-            }
-        }
-    }
-
-    public static void processEffects(RenderTarget mainTarget) {
-        for (PostEffect postEffect : postEffects.values()) {
-            if (postEffect.isEnabled() && postEffect.postChain != null) {
-                postEffect.postChain.process(Minecraft.getInstance().getTimer().getGameTimeDeltaTicks());
-                mainTarget.bindWrite(false);
-            }
-        }
-    }
-
-    private static class PostEffect {
-        private PostChain postChain;
+    private static class PostEffect implements AutoCloseable {
         private RenderTarget renderTarget;
         private boolean enabled;
 
-        public PostEffect(PostChain postChain, RenderTarget renderTarget, boolean enabled) {
-            this.postChain = postChain;
+        public PostEffect(RenderTarget renderTarget, boolean enabled) {
             this.renderTarget = renderTarget;
             this.enabled = enabled;
         }
 
-        public PostChain getPostChain() {
-            return postChain;
+        public void resize(int x, int y) {
         }
 
         public RenderTarget getRenderTarget() {
@@ -134,16 +74,8 @@ public class PostEffectRegistry {
             this.enabled = enabled;
         }
 
+        @Override
         public void close() {
-            if (postChain != null) {
-                postChain.close();
-            }
-        }
-
-        public void resize(int x, int y) {
-            if (postChain != null) {
-                postChain.resize(x, y);
-            }
         }
     }
 }

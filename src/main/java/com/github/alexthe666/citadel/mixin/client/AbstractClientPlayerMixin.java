@@ -4,9 +4,10 @@ import com.github.alexthe666.citadel.client.rewards.CitadelCapes;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.client.player.AbstractClientPlayer;
-import net.minecraft.client.resources.PlayerSkin;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.ClientAsset;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.PlayerSkin;
 import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -23,7 +24,7 @@ public abstract class AbstractClientPlayerMixin extends Player {
     private PlayerSkin citadel_getSkin(PlayerSkin original) {
         return Optional.ofNullable(CitadelCapes.getCurrentCape(this))
                 .map(CitadelCapes.Cape::getTexture)
-                .map(Identifier -> new PlayerSkin(original.texture(), original.textureUrl(), Identifier, Identifier, original.model(), original.secure()))
+                .map(identifier -> new PlayerSkin(original.body(), new ClientAsset.ResourceTexture(identifier), new ClientAsset.ResourceTexture(identifier), original.model(), original.secure()))
                 .orElse(original);
     }
 }

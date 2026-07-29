@@ -1,18 +1,18 @@
 package com.github.alexthe666.citadel.client.shader;
 
-import net.minecraft.client.renderer.ShaderInstance;
+import com.mojang.blaze3d.pipeline.RenderPipeline;
 
 import javax.annotation.Nullable;
 
 public class CitadelInternalShaders {
-    private static ShaderInstance renderTypeRainbowAura;
+    private static RenderPipeline renderTypeRainbowAura;
 
     @Nullable
-    public static ShaderInstance getRenderTypeRainbowAura() {
+    public static RenderPipeline getRenderTypeRainbowAura() {
         return renderTypeRainbowAura;
     }
 
-    public static void setRenderTypeRainbowAura(ShaderInstance instance) {
+    public static void setRenderTypeRainbowAura(RenderPipeline instance) {
         renderTypeRainbowAura = instance;
     }
 }

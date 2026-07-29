@@ -2,7 +2,7 @@ package com.github.alexthe666.citadel.client.event;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.model.EntityModel;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.OrderedSubmitNodeCollector;
 import net.minecraft.world.entity.LivingEntity;
 import net.neoforged.bus.api.Event;
 
@@ -51,10 +51,10 @@ public class EventLivingRenderer extends Event {
 
     public static class AccessToBufferSource extends EventLivingRenderer {
         private float bodyYRot;
-        private MultiBufferSource bufferSource;
+        private OrderedSubmitNodeCollector bufferSource;
         private int packedLight;
 
-        public AccessToBufferSource(LivingEntity entity, EntityModel model, PoseStack poseStack, float bodyYRot, float partialTicks, MultiBufferSource bufferSource, int packedLight) {
+        public AccessToBufferSource(LivingEntity entity, EntityModel model, PoseStack poseStack, float bodyYRot, float partialTicks, OrderedSubmitNodeCollector bufferSource, int packedLight) {
             super(entity, model, poseStack, partialTicks);
             this.bodyYRot = bodyYRot;
             this.bufferSource = bufferSource;
@@ -65,7 +65,7 @@ public class EventLivingRenderer extends Event {
             return bodyYRot;
         }
 
-        public MultiBufferSource getBufferSource() {
+        public OrderedSubmitNodeCollector getBufferSource() {
             return bufferSource;
         }
 
@@ -75,22 +75,19 @@ public class EventLivingRenderer extends Event {
     }
 
     public static class PreSetupAnimations extends AccessToBufferSource {
-
-        public PreSetupAnimations(LivingEntity entity, EntityModel model, PoseStack poseStack, float bodyYRot, float partialTicks, MultiBufferSource bufferSource, int packedLight) {
+        public PreSetupAnimations(LivingEntity entity, EntityModel model, PoseStack poseStack, float bodyYRot, float partialTicks, OrderedSubmitNodeCollector bufferSource, int packedLight) {
             super(entity, model, poseStack, bodyYRot, partialTicks, bufferSource, packedLight);
         }
     }
 
     public static class PostSetupAnimations extends AccessToBufferSource {
-
-        public PostSetupAnimations(LivingEntity entity, EntityModel model, PoseStack poseStack, float bodyYRot, float partialTicks, MultiBufferSource bufferSource, int packedLight) {
+        public PostSetupAnimations(LivingEntity entity, EntityModel model, PoseStack poseStack, float bodyYRot, float partialTicks, OrderedSubmitNodeCollector bufferSource, int packedLight) {
             super(entity, model, poseStack, bodyYRot, partialTicks, bufferSource, packedLight);
         }
     }
 
     public static class PostRenderModel extends AccessToBufferSource {
-
-        public PostRenderModel(LivingEntity entity, EntityModel model, PoseStack poseStack, float bodyYRot, float partialTicks, MultiBufferSource bufferSource, int packedLight) {
+        public PostRenderModel(LivingEntity entity, EntityModel model, PoseStack poseStack, float bodyYRot, float partialTicks, OrderedSubmitNodeCollector bufferSource, int packedLight) {
             super(entity, model, poseStack, bodyYRot, partialTicks, bufferSource, packedLight);
         }
     }

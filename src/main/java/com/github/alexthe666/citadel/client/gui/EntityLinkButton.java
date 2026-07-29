@@ -4,14 +4,15 @@ import com.github.alexthe666.citadel.client.gui.data.EntityLinkData;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
+import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -33,17 +34,20 @@ public class EntityLinkButton extends Button {
         this.bookGUI = bookGUI;
     }
 
-    public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+    @Override
+    protected void extractContents(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
         int lvt_5_1_ = 0;
         int lvt_6_1_ = 30;
         float f = (float) data.getScale();
-        guiGraphics.pose().pushPose();
-        guiGraphics.pose().translate(this.getX(), this.getY(), 0);
-        guiGraphics.pose().scale(f, f, 1);
+        guiGraphics.pose().push();
+        guiGraphics.pose().translate(this.getX(), this.getY());
+        guiGraphics.pose().scale(f, f);
         this.drawBtn(false, guiGraphics, 0, 0, lvt_5_1_, lvt_6_1_, 24, 24);
         Entity model = null;
-        EntityType type = BuiltInRegistries.ENTITY_TYPE.get(Identifier.parse(data.getEntity()));
-        model = renderedEntites.putIfAbsent(data.getEntity(), type.create(Minecraft.getInstance().level));
+        EntityType<?> type = BuiltInRegistries.ENTITY_TYPE.get(Identifier.parse(data.getEntity())).orElse(null);
+        if (type != null) {
+            model = renderedEntites.computeIfAbsent(data.getEntity(), k -> type.create(Minecraft.getInstance().level, net.minecraft.world.entity.EntitySpawnReason.LOAD));
+        }
 
         guiGraphics.enableScissor(this.getX() + Math.round(f * 4), this.getY() + Math.round(f * 4), this.getX() + Math.round(f * 20), this.getY() + Math.round(f * 20));
         if (model != null) {
@@ -59,10 +63,10 @@ public class EntityLinkButton extends Button {
             lvt_5_1_ = 24;
         }
         this.drawBtn(!this.isHovered, guiGraphics, 0, 0, lvt_5_1_, lvt_6_1_, 24, 24);
-        guiGraphics.pose().popPose();
+        guiGraphics.pose().pop();
     }
 
-    public void drawBtn(boolean color, GuiGraphics guiGraphics, int p_238474_2_, int p_238474_3_, int p_238474_4_, int p_238474_5_, int p_238474_6_, int p_238474_7_) {
+    public void drawBtn(boolean color, GuiGraphicsExtractor guiGraphics, int p_238474_2_, int p_238474_3_, int p_238474_4_, int p_238474_5_, int p_238474_6_, int p_238474_7_) {
         if (color) {
             int widgetColor = bookGUI.getWidgetColor();
             int r = (widgetColor & 0xFF0000) >> 16;
@@ -75,22 +79,10 @@ public class EntityLinkButton extends Button {
     }
 
 
-    public void renderEntityInInventory(GuiGraphics guiGraphics, int xPos, int yPos, float scale, Quaternionf rotation, Entity entity) {
-        guiGraphics.pose().pushPose();
-        guiGraphics.pose().translate(xPos, yPos, 50.0D);
-        guiGraphics.pose().mulPose((new Matrix4f()).scaling(scale, scale,  (-scale)));
-        guiGraphics.pose().mulPose(rotation);
-
-        Vector3f light0 = new Vector3f(1, -1.0F, -1.0F).normalize();
-        Vector3f light1 = new Vector3f(-1, 1.0F, 1.0F).normalize();
-        RenderSystem.setShaderLights(light0, light1);
-        EntityRenderDispatcher entityrenderdispatcher = Minecraft.getInstance().getEntityRenderDispatcher();
-        entityrenderdispatcher.setRenderShadow(false);
-        RenderSystem.runAsFancy(() -> entityrenderdispatcher.render(entity, 0.0D, 0.0D, 0.0D, 0.0F, 1.0F, guiGraphics.pose(), guiGraphics.bufferSource(), 15728880));
-        guiGraphics.flush();
-        entityrenderdispatcher.setRenderShadow(true);
-        guiGraphics.pose().popPose();
-        Lighting.setupFor3DItems();
+    public void renderEntityInInventory(GuiGraphicsExtractor guiGraphics, int xPos, int yPos, float scale, Quaternionf rotation, Entity entity) {
+        if (entity instanceof LivingEntity living) {
+            InventoryScreen.extractEntityInInventoryFollowsMouse(guiGraphics, xPos - (int)scale, yPos - (int)scale, xPos + (int)scale, yPos + (int)scale, (int)scale, 0, 0, 0, living);
+        }
     }
 
 }

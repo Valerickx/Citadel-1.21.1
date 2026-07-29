@@ -71,7 +71,7 @@ public class Citadel {
 
     public static final Supplier<Block> LECTERN = BLOCKS.register("lectern", () -> new CitadelLecternBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.LECTERN)));
 
-    public static final Supplier<BlockEntityType<CitadelLecternBlockEntity>> LECTERN_BE = BLOCK_ENTITIES.register("lectern", () -> BlockEntityType.Builder.of(CitadelLecternBlockEntity::new, LECTERN.get()).build(null));
+    public static final Supplier<BlockEntityType<CitadelLecternBlockEntity>> LECTERN_BE = BLOCK_ENTITIES.register("lectern", () -> new BlockEntityType<>(CitadelLecternBlockEntity::new, java.util.Set.of(LECTERN.get())));
 
     public Citadel(ModContainer modContainer, IEventBus bus) {
         ITEMS.register(bus);
@@ -82,7 +82,7 @@ public class Citadel {
         serializers.register(bus);
         serializers.register("mob_spawn_probability", SpawnProbabilityModifier::makeCodec);
         // Only register PROXY to event bus on client side (ClientProxy has @SubscribeEvent methods, ServerProxy doesn't)
-        if (FMLEnvironment.dist.isClient()) {
+        if (FMLEnvironment.getDist().isClient()) {
             NeoForge.EVENT_BUS.register(PROXY);
         }
         modContainer.registerConfig(ModConfig.Type.COMMON, ConfigHolder.SERVER_SPEC);
@@ -131,7 +131,7 @@ public class Citadel {
         final PayloadRegistrar registrar = event.registrar("citadel").versioned("2.7.0").optional();
         registrar.playToServer(PropertiesMessage.TYPE, PropertiesMessage.CODEC, PropertiesMessage::handle);
         registrar.playToClient(AnimationMessage.TYPE, AnimationMessage.CODEC, AnimationMessage::handle);
-    registrar.playBidirectional(DanceJukeboxMessage.TYPE, DanceJukeboxMessage.CODEC, DanceJukeboxMessage::handle);
+        registrar.playBidirectional(DanceJukeboxMessage.TYPE, DanceJukeboxMessage.CODEC, DanceJukeboxMessage::handle);
         registrar.playToClient(SyncePathMessage.TYPE, SyncePathMessage.CODEC, SyncePathMessage::handle);
         registrar.playToClient(SyncPathReachedMessage.TYPE, SyncPathReachedMessage.CODEC, SyncPathReachedMessage::handle);
         registrar.playToClient(SyncClientTickRateMessage.TYPE, SyncClientTickRateMessage.CODEC, SyncClientTickRateMessage::handle);
@@ -146,7 +146,7 @@ public class Citadel {
     }
 
     private static <T> T unsafeRunForDist(Supplier<Supplier<T>> clientTarget, Supplier<Supplier<T>> serverTarget) {
-        return switch (FMLEnvironment.dist) {
+        return switch (FMLEnvironment.getDist()) {
             case CLIENT -> clientTarget.get().get();
             case DEDICATED_SERVER -> serverTarget.get().get();
         };
