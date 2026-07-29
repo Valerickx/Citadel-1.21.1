@@ -4,13 +4,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.mojang.math.Transformation;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.*;
+import net.minecraft.client.resources.model.UnbakedModel;
+import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemDisplayContext;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
-import java.util.function.Function;
 
 /**
  * @author pau101
@@ -31,16 +31,6 @@ public class VanillaTabulaModel implements UnbakedModel {
 
     public Collection<Identifier> getDependencies() {
         return ImmutableList.of();
-    }
-
-    @Override
-    public void resolveParents(Function<Identifier, UnbakedModel> p_119538_) {
-
-    }
-
-    @Override
-    public @Nullable ResolvedModel bake(ModelBaker baker, Function<Material, TextureAtlasSprite> spriteGetter, ModelState state) {
-        return null;
     }
 
 /*

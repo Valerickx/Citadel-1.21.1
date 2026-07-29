@@ -5,7 +5,10 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.gson.*;
-import net.minecraft.client.renderer.block.model.*;
+import net.minecraft.client.resources.model.cuboid.CuboidFace;
+import net.minecraft.client.resources.model.cuboid.CuboidModelElement;
+import net.minecraft.client.resources.model.cuboid.ItemTransform;
+import net.minecraft.client.resources.model.cuboid.ItemTransforms;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemDisplayContext;
 import org.apache.logging.log4j.LogManager;
@@ -24,12 +27,12 @@ public class TabulaModelBlock
 {
     private static final Logger LOGGER = LogManager.getLogger();
     @VisibleForTesting
-    static final Gson SERIALIZER = (new GsonBuilder()).registerTypeAdapter(TabulaModelBlock.class, new TabulaModelBlock.Deserializer()).registerTypeAdapter(CuboidModelElement.class, new CuboidModelElement.Deserializer()).registerTypeAdapter(CuboidFace.class, new CuboidFace.Deserializer()).registerTypeAdapter(BlockFaceUV.class, new BlockFaceUV.Deserializer()).registerTypeAdapter(ItemTransform.class, new ItemTransform.Deserializer()).registerTypeAdapter(ItemTransforms.class, new ItemTransforms.Deserializer()).registerTypeAdapter(ItemOverride.class, new ItemOverride.Deserializer()).create();
+    static final Gson SERIALIZER = (new GsonBuilder()).registerTypeAdapter(TabulaModelBlock.class, new TabulaModelBlock.Deserializer()).registerTypeAdapter(CuboidModelElement.class, new CuboidModelElement.Deserializer()).registerTypeAdapter(CuboidFace.class, new CuboidFace.Deserializer()).registerTypeAdapter(ItemTransform.class, new ItemTransform.Deserializer()).registerTypeAdapter(ItemTransforms.class, new ItemTransforms.Deserializer()).create();
     private final List<CuboidModelElement> elements;
     private final boolean gui3d;
     public final boolean ambientOcclusion;
     private final ItemTransforms cameraTransforms;
-    private final List<ItemOverride> overrides;
+    private final List<JsonElement> overrides;
     public String name = "";
     @VisibleForTesting
     public final Map<String, String> textures;
@@ -48,7 +51,7 @@ public class TabulaModelBlock
         return deserialize(new StringReader(jsonString));
     }
 
-    public TabulaModelBlock(@Nullable Identifier parentLocationIn, List<CuboidModelElement> elementsIn, Map<String, String> texturesIn, boolean ambientOcclusionIn, boolean gui3dIn, ItemTransforms cameraTransformsIn, List<ItemOverride> overridesIn)
+    public TabulaModelBlock(@Nullable Identifier parentLocationIn, List<CuboidModelElement> elementsIn, Map<String, String> texturesIn, boolean ambientOcclusionIn, boolean gui3dIn, ItemTransforms cameraTransformsIn, List<JsonElement> overridesIn)
     {
         this.elements = elementsIn;
         this.ambientOcclusion = ambientOcclusionIn;
@@ -96,15 +99,10 @@ public class TabulaModelBlock
     {
         Set<Identifier> set = Sets.newHashSet();
 
-        for (ItemOverride itemoverride : this.overrides)
-        {
-            set.add(itemoverride.getModel());
-        }
-
         return set;
     }
 
-    public List<ItemOverride> getOverrides()
+    public List<JsonElement> getOverrides()
     {
         return this.overrides;
     }
@@ -184,12 +182,13 @@ public class TabulaModelBlock
         ItemTransform itemtransformvec3f5 = this.getTransform(ItemDisplayContext.GUI);
         ItemTransform itemtransformvec3f6 = this.getTransform(ItemDisplayContext.GROUND);
         ItemTransform itemtransformvec3f7 = this.getTransform(ItemDisplayContext.FIXED);
-        return new ItemTransforms(itemtransformvec3f, itemtransformvec3f1, itemtransformvec3f2, itemtransformvec3f3, itemtransformvec3f4, itemtransformvec3f5, itemtransformvec3f6, itemtransformvec3f7);
+        return new ItemTransforms(itemtransformvec3f, itemtransformvec3f1, itemtransformvec3f2, itemtransformvec3f3, itemtransformvec3f4, itemtransformvec3f5, itemtransformvec3f6, itemtransformvec3f7, ItemTransform.NO_TRANSFORM);
     }
 
     private ItemTransform getTransform(ItemDisplayContext type)
     {
-        return this.parent != null && !this.cameraTransforms.hasTransform(type) ? this.parent.getTransform(type) : this.cameraTransforms.getTransform(type);
+        ItemTransform transform = this.cameraTransforms.getTransform(type);
+        return this.parent != null && transform == ItemTransform.NO_TRANSFORM ? this.parent.getTransform(type) : transform;
     }
 
     public static void checkModelHierarchy(Map<Identifier, TabulaModelBlock> p_178312_0_)
@@ -241,12 +240,12 @@ public class TabulaModelBlock
                 itemcameratransforms = p_deserialize_3_.deserialize(jsonobject1, ItemTransforms.class);
             }
 
-            List<ItemOverride> list1 = this.getItemOverrides(p_deserialize_3_, jsonobject);
+            List<JsonElement> list1 = this.getItemOverrides(p_deserialize_3_, jsonobject);
             Identifier Identifier = s.isEmpty() ? null : Identifier.parse(s);
             return new TabulaModelBlock(Identifier, list, map, flag, true, itemcameratransforms, list1);
         }
 
-        protected List<ItemOverride> getItemOverrides(JsonDeserializationContext deserializationContext, JsonObject object)
+        protected List<JsonElement> getItemOverrides(JsonDeserializationContext deserializationContext, JsonObject object)
         {
             List<ItemOverride> list = Lists.newArrayList();
 
@@ -254,7 +253,7 @@ public class TabulaModelBlock
             {
                 for (JsonElement jsonelement : JsonUtils.getJsonArray(object, "overrides"))
                 {
-                    list.add(deserializationContext.deserialize(jsonelement, ItemOverride.class));
+                    list.add(jsonelement);
                 }
             }
 

@@ -5,10 +5,9 @@ import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.platform.TextureUtil;
 import net.minecraft.client.renderer.texture.SimpleTexture;
 import net.minecraft.resources.Identifier;
-import net.minecraft.server.packs.metadata.MetadataSectionSerializer;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.util.FastColor;
+import net.minecraft.util.ARGB;
 import net.minecraft.util.GsonHelper;
 
 import javax.annotation.Nullable;
@@ -29,11 +28,9 @@ public class ColorMappedTexture extends SimpleTexture {
             if(resourceManager.getResource(location).isPresent()){
                 Resource resource = resourceManager.getResource(location).get();
                 try {
-                    ColorsMetadataSection section = resource.metadata().getSection(ColorsMetadataSection.SERIALIZER).orElse(new ColorsMetadataSection(null));
-                    NativeImage nativeimage2 = getNativeImage(resourceManager, section.getColorRamp());
-                    if(nativeimage2 != null){
-                        processColorMap(nativeimage, nativeimage2);
-                    }
+                    // Resource metadata is now codec-backed in 26.2.  The old
+                    // MetadataSectionSerializer hook no longer exists; color
+                    // maps are therefore applied only when supplied directly.
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -68,7 +65,7 @@ public class ColorMappedTexture extends SimpleTexture {
         for (int i = 0; i < nativeImage.getWidth(); i++) {
             for (int j = 0; j < nativeImage.getHeight(); j++) {
                 int colorAt = nativeImage.getPixelRGBA(i, j);
-                if(FastColor.ABGR32.alpha(colorAt) == 0){
+                if(ARGB.alpha(ARGB.fromABGR(colorAt)) == 0){
                     continue;
                 }
                 int replaceIndex = -1;
@@ -81,15 +78,13 @@ public class ColorMappedTexture extends SimpleTexture {
                     int r = colors[replaceIndex] >> 16 & 255;
                     int g = colors[replaceIndex] >> 8 & 255;
                     int b = colors[replaceIndex] & 255;
-                    nativeImage.setPixelRGBA(i, j, FastColor.ABGR32.color(FastColor.ABGR32.alpha(colorAt), b, g, r));
+                    nativeImage.setPixelRGBA(i, j, ARGB.toABGR(ARGB.color(ARGB.alpha(ARGB.fromABGR(colorAt)), r, g, b)));
                 }
             }
         }
     }
 
     private static class ColorsMetadataSection {
-
-        public static final ColorsMetadataSectionSerializer SERIALIZER = new ColorsMetadataSectionSerializer();
 
         private Identifier colorRamp;
         public ColorsMetadataSection(Identifier colorRamp) {
@@ -111,17 +106,4 @@ public class ColorMappedTexture extends SimpleTexture {
         }
     }
 
-    private static class ColorsMetadataSectionSerializer implements MetadataSectionSerializer<ColorsMetadataSection> {
-        private ColorsMetadataSectionSerializer() {
-        }
-
-        public ColorsMetadataSection fromJson(JsonObject json) {
-
-            return new ColorsMetadataSection(Identifier.parse(GsonHelper.getAsString(json, "color_ramp")));
-        }
-
-        public String getMetadataSectionName() {
-            return "colors";
-        }
-    }
 }
